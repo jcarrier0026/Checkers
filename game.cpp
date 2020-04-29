@@ -98,16 +98,9 @@ bool Game::Run() {
           boardY = mouseX / 100;
           boardX = mouseY / 100;
           piece_selected = true;
-          //            std::cout << "X: " << x << "\nY: " << y <<
-          //            "\n";
         } else {
           b = mouseX / 100;
           a = mouseY / 100;
-          //          vector<int> start = {boardX, boardY};
-          //          vector<int> end = {a, b};
-          //          move(graphics_.checkerboard_, start, end);
-          std::cout << "(" << boardX << ", " << boardY << ") (" << a << ", "
-                    << b << ")" << std::endl;
           movePiece(boardX, boardY, a, b);
           inputFromFile();
           piece_selected = false;
@@ -148,9 +141,6 @@ bool Game::Run() {
             graphics_.AddSprite(black_king_piece, destination);
           }
         }
-      }
-      if (input_.WasKeyPressed(SDL_SCANCODE_Q)) {
-        inMenu = true;
       }
     }
     graphics_.DrawNextFrame();
