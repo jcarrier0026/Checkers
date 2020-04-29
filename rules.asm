@@ -234,10 +234,10 @@ jmp_test:
                     ;// ILLEGAL MOVE: jump is out of bounds
 jmp_OOB_test:
                     mov     rAx, [endRow]                     ;//converts inout endCoords to proper jump destination
-                    add     rAx, [startRow]
+                    sub     rAx, [startRow]
                     mov     rBx, 2
-                    mul     rBx
-                    add     rBx, [startRow]
+                    imul    rBx
+                    add     rAx, [startRow]
 
                     cmp     rAx, 0
                     jl      END_MOVE
@@ -245,11 +245,10 @@ jmp_OOB_test:
                     jg      END_MOVE
 
                     mov     rAx, [endCol]                     ;//converts inout endCoords to proper jump destination
-                    add     rAx, [startCol]
+                    sub     rAx, [startCol]
                     mov     rCx, 2
-                    mul     rCx
-                    add     rCx, [startCol]
-                    mov     rCx, rAx
+                    imul     rCx
+                    add     rAx, [startCol]
 
                     cmp     rAx, 0
                     jl      END_MOVE
@@ -259,20 +258,20 @@ jmp_OOB_test:
                     ;// ILLEGAL MOVE: jump destination is occupied
 jmp_OCP_test:
                     mov     rAx, [endRow]                     ;//converts inout endCoords to proper jump destination
-                    add     rAx, [startRow]
+                    sub     rAx, [startRow]
                     mov     rBx, 2
-                    mul     rBx
-                    add     rBx, [startRow]
-                    mov     rBx, [checkerboard+rAx]
+                    imul    rBx
+                    add     rAx, [startRow]
+                    mov     rBx, [checkerboard+8*rAx]
 
                     mov     rAx, [endCol]                     ;//converts inout endCoords to proper jump destination
-                    add     rAx, [startCol]
+                    sub     rAx, [startCol]
                     mov     rCx, 2
-                    mul     rCx
-                    add     rCx, [startCol]
+                    imul    rCx
+                    add     rAx, [startCol]
                     mov     rCx, rAx
 
-                    cmp     [rBx + 8*rCx], DWORD 0
+                    cmp     [rBx + rCx], DWORD 0
                     jne     END_MOVE
                     jmp     legal_jump
 
@@ -300,24 +299,25 @@ legal_jump:                                                 ;// code below is id
                     mov     [rBx + rCx], AL
 
                     _endCoords                              ;// rmpty the jumped over space
+                    xor     rAx, rAx
                     mov     [rBx + rCx], AL
 
                     mov     rAx, [endRow]                     ;//converts inout endCoords to proper jump destination
-                    add     rAx, [startRow]
+                    sub     rAx, [startRow]
                     mov     rBx, 2
-                    mul     rBx
-                    add     rBx, [startRow]
-                    mov     rBx, [checkerboard+rAx]
+                    imul    rBx
+                    add     rAx, [startRow]
+                    mov     rBx, [checkerboard+8*rAx]
 
                     mov     rAx, [endCol]                     ;//converts inout endCoords to proper jump destination
-                    add     rAx, [startCol]
+                    sub     rAx, [startCol]
                     mov     rCx, 2
-                    mul     rCx
-                    add     rCx, [startCol]
+                    imul    rCx
+                    add     rAx, [startCol]
                     mov     rCx, rAx
 
                     pop     rAx
-                    mov     [rBx + 8*rCx], AL
+                    mov     [rBx + rCx], AL
 END_MOVE:
                     call outputBoard
                     ret
@@ -332,13 +332,13 @@ kingCheck:
         DO1_KC:     xor     rAx, rAx                        ;// row = 0
                     mov     rBx, [checkerboard+rAx]          ;// move the target row into rBx
 
-                    mov     AL, [rBx + 8*rCx]
+                    mov     AL, [rBx + rCx]
                     cmp     Al, 1
                     je      KING_ONE
                     jmp     FORNEXT1_KC
 
     KING_ONE:       mov     AL, 3                           ;// replace the 1 in the back row with a 3 (red king)
-                    mov     [rBx + 8*rCx], AL
+                    mov     [rBx + rCx], AL
 
     FORNEXT1_KC:
                     inc     rCx                             ;// i++
@@ -352,13 +352,13 @@ kingCheck:
         DO2_KC:     mov     rAx, 28                         ;// row = 7
                     mov     rBx, [checkerboard+rAx]          ;// move the target row into rBx
 
-                    mov     AL, [rBx + 8*rCx]
+                    mov     AL, [rBx + rCx]
                     cmp     Al, 2
                     je      KING_TWO
                     jmp     FORNEXT2_KC
 
     KING_TWO:       mov     AL, 4                           ;// replace the 1 in the back row with a 3 (red king)
-                    mov     [rBx + 8*rCx], AL
+                    mov     [rBx + rCx], AL
 
     FORNEXT2_KC:
 

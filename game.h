@@ -31,6 +31,8 @@ private:
 
   // Controls all input-related functionality.
   Input input_;
+
+  void inputFromFile();
 };
 
 #endif /* GAME_H */

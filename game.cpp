@@ -3,6 +3,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
+#include <fstream>
 #include <iostream>
 
 #include "constants.h"
@@ -98,14 +99,17 @@ bool Game::Run() {
           boardX = mouseY / 100;
           piece_selected = true;
           //            std::cout << "X: " << x << "\nY: " << y <<
-          "\n";
+          //            "\n";
         } else {
           b = mouseX / 100;
           a = mouseY / 100;
           //          vector<int> start = {boardX, boardY};
           //          vector<int> end = {a, b};
           //          move(graphics_.checkerboard_, start, end);
-          movePiece(boardX, boardY, b, a);
+          std::cout << "(" << boardX << ", " << boardY << ") (" << a << ", "
+                    << b << ")" << std::endl;
+          movePiece(boardX, boardY, a, b);
+          inputFromFile();
           piece_selected = false;
         }
       }
@@ -170,4 +174,24 @@ bool Game::InitSdl() {
   }
   IMG_Init(IMG_INIT_PNG);
   return true;
+}
+
+void Game::inputFromFile() {
+  std::string filename = "Checkerboard.txt";
+  std::ifstream infile(filename);
+  if (!infile) {
+    std::cout << "Unable to open file." << std::endl;
+    exit(1);
+  }
+  if (infile.is_open()) {
+    int x;
+    for (int i = 0; i < 8; i++) {
+      for (int j = 0; j < 8; j++) {
+        infile >> x;
+        //  std::cout << i << " " << j << " " << x << std::endl;
+        graphics_.checkerboard_[i][j] = x;
+      }
+    }
+    infile.close();
+  }
 }
