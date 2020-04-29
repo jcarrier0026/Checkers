@@ -504,432 +504,447 @@
     63                                       
     64                                  
     65                                  SECTION .text
-    66                                  ;main:
-    67                                  
-    68                                  outputBoard:
-    69 00000000 B802000000                                      mov rax, SYS_OPEN
-    70 00000005 48BF-                   	                mov rdi, filename
-    70 00000007 [4000000000000000] 
-    71 0000000F BE41000000              	                mov rsi, O_CREAT+O_WRONLY
-    72 00000014 BAA4010000              	                mov rdx, 0644o
-    73 00000019 0F05                    	                syscall
-    74 0000001B 488905(84000000)        	                mov [fileDescriptor], rax
-    75                                  
-    76 00000022 4831C9                                      xor     rCx, rCx                        ;// int i = 0
-    77 00000025 4883F940                    FOR_outB:       cmp     rCx, 64                         ;// for i < 32
-    78 00000029 7C02                                        jl      DOFOR_outB
-    79 0000002B EB14                                        jmp     ENDFOR_outB
-    80                                  
-    81 0000002D 488B99[51000000]            DOFOR_outB:     mov     rBx, [checkerboard+rCx]          ;//puts row[rCx] into rBx for outputRow Function
-    82 00000034 51                                          push    rCx
-    83 00000035 E816000000                                  call    outputRow
-    84 0000003A 59                                          pop     rCx
-    85 0000003B 4883C108                                    add     rCx, 8                          ;// i+=4
-    86                                  
-    87 0000003F EBE4                                        jmp     FOR_outB
-    88                                      ENDFOR_outB:   
-    89 00000041 B803000000                                  mov rax, SYS_CLOSE
-    90 00000046 488B3D(84000000)        	            mov rdi, [fileDescriptor]
-    91 0000004D 0F05                    	            syscall
-    92 0000004F C3                                          ret
+    66                                  
+    67                                  outputBoard:
+    68 00000000 B802000000                                      mov rax, SYS_OPEN
+    69 00000005 48BF-                   	                mov rdi, filename
+    69 00000007 [4000000000000000] 
+    70 0000000F BE41000000              	                mov rsi, O_CREAT+O_WRONLY
+    71 00000014 BAA4010000              	                mov rdx, 0644o
+    72 00000019 0F05                    	                syscall
+    73 0000001B 488905(84000000)        	                mov [fileDescriptor], rax
+    74                                  
+    75 00000022 4831C9                                      xor     rCx, rCx                        ;// int i = 0
+    76 00000025 4883F940                    FOR_outB:       cmp     rCx, 64                         ;// for i < 32
+    77 00000029 7C02                                        jl      DOFOR_outB
+    78 0000002B EB14                                        jmp     ENDFOR_outB
+    79                                  
+    80 0000002D 488B99[51000000]            DOFOR_outB:     mov     rBx, [checkerboard+rCx]          ;//puts row[rCx] into rBx for outputRow Function
+    81 00000034 51                                          push    rCx
+    82 00000035 E816000000                                  call    outputRow
+    83 0000003A 59                                          pop     rCx
+    84 0000003B 4883C108                                    add     rCx, 8                          ;// i+=4
+    85                                  
+    86 0000003F EBE4                                        jmp     FOR_outB
+    87                                      ENDFOR_outB:   
+    88 00000041 B803000000                                  mov rax, SYS_CLOSE
+    89 00000046 488B3D(84000000)        	            mov rdi, [fileDescriptor]
+    90 0000004D 0F05                    	            syscall
+    91 0000004F C3                                          ret
+    92                                  
     93                                  
-    94                                  
-    95                                  outputRow:                                              ;// Requires: rBx =  rowX
-    96 00000050 4831C9                                      xor     rCx, rCx                        ;// int j = 0
-    97 00000053 4883F908                    FOR_outR:       cmp     rCx, 8                          ;// for j < 8
-    98 00000057 7C02                                        jl      DOFOR_outR
-    99 00000059 EB37                                        jmp     ENDFOR_outR
-   100                                  
-   101                                      DOFOR_outR:     
-   102 0000005B 4831C0                                      xor     rAx, rAx                        ;// clear rAx
-   103 0000005E 8A040B                                      mov     Al, [rBx + rCx]                 ;// VVV
-   104 00000061 488B3D(84000000)        			mov rdi, [fileDescriptor]
-   105 00000068 4883C030                			add rax, 48
-   106 0000006C B420                    			mov ah, 32                          ;// Adds a space between the numbers in the file.
-   107 0000006E 488905(74000000)        			mov [itemToAdd], rax
-   108 00000075 48BE-                   	                mov rsi, itemToAdd
-   108 00000077 [7400000000000000] 
-   109 0000007F B801000000              	                mov rax, SYS_WRITE
-   110 00000084 BA02000000              	                mov rdx, 2
-   111 00000089 51                      			push rcx
-   112 0000008A 0F05                    	                syscall
-   113 0000008C 59                      			pop rcx
-   114 0000008D 48FFC1                                      inc rcx
-   115 00000090 EBC1                                        jmp     FOR_outR
-   116                                  
-   117                                      ENDFOR_outR:     
-   118 00000092 C3                                          ret
-   119                                  
-   120                                  movePiece:
-   121                                  
-   122 00000093 893D(94000000)                mov [startRow], edi
-   123 00000099 8935(94010000)                mov [startCol], esi
-   124 0000009F 8915(94020000)                mov [endRow], edx
-   125 000000A5 890D(94030000)                mov [endCol], ecx
-   126                                  
-   127                                  strt_OOB_test:
-   128 000000AB 833D(94000000)00                            cmp     [startRow], DWORD 0
-   129 000000B2 0F8CD2030000                                jl      END_MOVE
-   130 000000B8 833D(94000000)07                            cmp     [startRow], DWORD 7
-   131 000000BF 0F8FC5030000                                jg      END_MOVE
-   132 000000C5 833D(94010000)00                            cmp     [startCol], DWORD 0
-   133 000000CC 0F8CB8030000                                jl      END_MOVE
-   134 000000D2 833D(94010000)07                            cmp     [startCol], DWORD 7
-   135 000000D9 0F8FAB030000                                jg      END_MOVE
-   136                                  
-   137                                                      ;// ILLEGAL MOVE: destination square out of bounds
-   138                                  dst_OOB_test:
-   139 000000DF 833D(94020000)00                            cmp     [endRow], DWORD 0
-   140 000000E6 0F8C9E030000                                jl      END_MOVE
-   141 000000EC 833D(94020000)07                            cmp     [endRow], DWORD 7
-   142 000000F3 0F8F91030000                                jg      END_MOVE
-   143 000000F9 833D(94030000)00                            cmp     [endCol], DWORD 0
-   144 00000100 0F8C84030000                                jl      END_MOVE
-   145 00000106 833D(94030000)07                            cmp     [endCol], DWORD 7
-   146 0000010D 0F8F77030000                                jg      END_MOVE
-   147                                  
-   148                                                      ;// ILLEGAL MOVE: destination square is black
-   149                                  dst_BLK_test:
-   150 00000113 488B05(94020000)                            mov     rAx, [endRow]
-   151 0000011A 480305(94030000)                            add     rAx, [endCol]
-   152 00000121 4831D2                                      xor     rDx, rDx
-   153 00000124 BB02000000                                  mov     rBx, 2                      ;// divide the sum of the coords by 2
-   154 00000129 48F7F3                                      div     rBx                         ;// since all white spaces contain either two od coords or two even coords, then the sum must be even
-   155 0000012C 4883FA01                                    cmp     rDx, 1                      ;// if the remanider of div 2 is 1, then the destination square must be black
-   156 00000130 0F8454030000                                je      END_MOVE
-   157                                  
-   158                                                      ;// ILLEGAL MOVE: destination square is backwards (or if the starting square is rmpty)
-   159                                  dst_BACK_test:
-   160                                                      _startCoords
-   160                              <1> 
-   160 00000136 488B05(94000000)    <1>  mov rAx, [startRow]
-   160 0000013D BB08000000          <1>  mov rBx, 8
-   160 00000142 48F7E3              <1>  mul rBx
-   160                              <1> 
-   160 00000145 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
-   160 0000014C 488B0D(94010000)    <1>  mov rCx, [startCol]
-   160                              <1> 
-   161 00000153 8A040B                                      mov     AL, [rBx + rCx]
-   162 00000156 3C02                        IF_P2:          cmp     AL, 2                       ;// if thr piece at the startCoords is a 2 (black piece)
-   163 00000158 7402                                        je      THEN_P2
-   164 0000015A EB39                                        jmp     IF_P1
-   165 0000015C 488B05(94000000)                THEN_P2:    mov     rAx, [startRow]               ;// then thr piece can only move down the board (positivr x)
-   166 00000163 48FFC0                                      inc     rAx
-   167 00000166 483B05(94020000)                            cmp     rAx, [endRow]
-   168 0000016D 0F8517030000                                jne     END_MOVE
-   169 00000173 EB40                                        jmp     ENDIF_P12
-   170                                  
-   171                                                      _startCoords
-   171                              <1> 
-   171 00000175 488B05(94000000)    <1>  mov rAx, [startRow]
-   171 0000017C BB08000000          <1>  mov rBx, 8
-   171 00000181 48F7E3              <1>  mul rBx
-   171                              <1> 
-   171 00000184 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
-   171 0000018B 488B0D(94010000)    <1>  mov rCx, [startCol]
-   171                              <1> 
-   172 00000192 8A040B                                      mov     AL, [rBx + rCx]
-   173 00000195 3C01                        IF_P1:          cmp     AL, 1                       ;// if thr piece at the startCoords is a 1 (red piece)
-   174 00000197 7405                                        je      THEN_P1
-   175 00000199 E9EC020000                                  jmp     END_MOVE                 ;// if thr piece is neither a 1 nor a two, it cannot be moved
-   176 0000019E 488B05(94000000)                THEN_P1:    mov     rAx, [startRow]               ;// then thr piece can only move down the board (positivr x)
-   177 000001A5 48FFC8                                      dec     rAx
-   178 000001A8 483B05(94020000)                            cmp     rAx, [endRow]
-   179 000001AF 0F85D5020000                                jne     END_MOVE
-   180                                  
-   181                                      ENDIF_P12:
-   182                                  
-   183                                                      ;// ILLEGAL MOVE: destination square is occupied (also if the start space is rmpty)
-   184                                  dst_OCP_test:
-   185                                                      _startCoords
-   185                              <1> 
-   185 000001B5 488B05(94000000)    <1>  mov rAx, [startRow]
-   185 000001BC BB08000000          <1>  mov rBx, 8
-   185 000001C1 48F7E3              <1>  mul rBx
-   185                              <1> 
-   185 000001C4 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
-   185 000001CB 488B0D(94010000)    <1>  mov rCx, [startCol]
-   185                              <1> 
-   186 000001D2 8A040B                                      mov     AL, [rBx + rCx]
-   187 000001D5 3C02                        IF_O2           cmp     AL, 2                       ;// if thr piece at the start is a 2 (black piece)
-   188 000001D7 7402                                        je      THEN_O2
-   189 000001D9 EB2A                                        jmp     IF_O1
-   190                                          THEN_O2:    _endCoords                          ;// then it cannot jump a friendly piece
-   190                              <1>  THEN_O2: 
-   190                              <1> 
-   190 000001DB 488B05(94020000)    <1>  mov rAx, [endRow]
-   190 000001E2 BB08000000          <1>  mov rBx, 8
-   190 000001E7 48F7E3              <1>  mul rBx
-   190                              <1> 
-   190 000001EA 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
-   190 000001F1 488B0D(94030000)    <1>  mov rCx, [endCol]
-   190                              <1> 
-   191 000001F8 8A040B                                      mov     AL, [rBx + rCx]
-   192 000001FB 3C02                                        cmp     Al, 2
-   193 000001FD 0F8487020000                                je      END_MOVE
-   194 00000203 EB4E                                        jmp     ENDIF_O12
-   195                                  
-   196                                      IF_O1:          _startCoords
-   196                              <1>  IF_O1: 
-   196                              <1> 
-   196 00000205 488B05(94000000)    <1>  mov rAx, [startRow]
-   196 0000020C BB08000000          <1>  mov rBx, 8
-   196 00000211 48F7E3              <1>  mul rBx
-   196                              <1> 
-   196 00000214 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
-   196 0000021B 488B0D(94010000)    <1>  mov rCx, [startCol]
-   196                              <1> 
-   197 00000222 8A040B                                      mov     AL, [rBx + rCx]
-   198 00000225 3C01                                        cmp     AL, 1                       ;// if thr piece at the start is a 1 (red piece)
-   199 00000227 7402                                        je      THEN_O1
-   200 00000229 EB28                                        jmp     ENDIF_O12
-   201                                          THEN_O1:    _endCoords
-   201                              <1>  THEN_O1: 
-   201                              <1> 
-   201 0000022B 488B05(94020000)    <1>  mov rAx, [endRow]
-   201 00000232 BB08000000          <1>  mov rBx, 8
-   201 00000237 48F7E3              <1>  mul rBx
-   201                              <1> 
-   201 0000023A 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
-   201 00000241 488B0D(94030000)    <1>  mov rCx, [endCol]
-   201                              <1> 
-   202 00000248 8A040B                                      mov     Al, [rBx + rCx]
-   203 0000024B 3C01                                        cmp     AL, 1                       ;// then it cannot jump a friendly piece
-   204 0000024D 0F8437020000                                je      END_MOVE
-   205                                  
-   206                                      ENDIF_O12:
-   207                                  
-   208                                                      ;// Testing for attrmpted jump
-   209                                  jmp_test:
-   210                                                      _startCoords
+    94                                  outputRow:                                              ;// Requires: rBx =  rowX
+    95 00000050 4831C9                                      xor     rCx, rCx                        ;// int j = 0
+    96 00000053 4883F908                    FOR_outR:       cmp     rCx, 8                          ;// for j < 8
+    97 00000057 7C02                                        jl      DOFOR_outR
+    98 00000059 EB37                                        jmp     ENDFOR_outR
+    99                                  
+   100                                      DOFOR_outR:     
+   101 0000005B 4831C0                                      xor     rAx, rAx                        ;// clear rAx
+   102 0000005E 8A040B                                      mov     Al, [rBx + rCx]                 ;// VVV
+   103 00000061 488B3D(84000000)        			mov rdi, [fileDescriptor]
+   104 00000068 4883C030                			add rax, 48
+   105 0000006C B420                    			mov ah, 32                          ;// Adds a space between the numbers in the file.
+   106 0000006E 488905(74000000)        			mov [itemToAdd], rax
+   107 00000075 48BE-                   	                mov rsi, itemToAdd
+   107 00000077 [7400000000000000] 
+   108 0000007F B801000000              	                mov rax, SYS_WRITE
+   109 00000084 BA02000000              	                mov rdx, 2
+   110 00000089 51                      			push rcx
+   111 0000008A 0F05                    	                syscall
+   112 0000008C 59                      			pop rcx
+   113 0000008D 48FFC1                                      inc rcx
+   114 00000090 EBC1                                        jmp     FOR_outR
+   115                                  
+   116                                      ENDFOR_outR:     
+   117 00000092 C3                                          ret
+   118                                  
+   119                                  movePiece:
+   120                                  
+   121 00000093 893D(94000000)                mov [startRow], edi
+   122 00000099 8935(94010000)                mov [startCol], esi
+   123 0000009F 8915(94020000)                mov [endRow], edx
+   124 000000A5 890D(94030000)                mov [endCol], ecx
+   125                                  
+   126                                  strt_OOB_test:
+   127 000000AB 833D(94000000)00                            cmp     [startRow], DWORD 0
+   128 000000B2 0F8C03040000                                jl      END_MOVE
+   129 000000B8 833D(94000000)07                            cmp     [startRow], DWORD 7
+   130 000000BF 0F8FF6030000                                jg      END_MOVE
+   131 000000C5 833D(94010000)00                            cmp     [startCol], DWORD 0
+   132 000000CC 0F8CE9030000                                jl      END_MOVE
+   133 000000D2 833D(94010000)07                            cmp     [startCol], DWORD 7
+   134 000000D9 0F8FDC030000                                jg      END_MOVE
+   135                                  
+   136                                                      ;// ILLEGAL MOVE: destination square out of bounds
+   137                                  dst_OOB_test:
+   138 000000DF 833D(94020000)00                            cmp     [endRow], DWORD 0
+   139 000000E6 0F8CCF030000                                jl      END_MOVE
+   140 000000EC 833D(94020000)07                            cmp     [endRow], DWORD 7
+   141 000000F3 0F8FC2030000                                jg      END_MOVE
+   142 000000F9 833D(94030000)00                            cmp     [endCol], DWORD 0
+   143 00000100 0F8CB5030000                                jl      END_MOVE
+   144 00000106 833D(94030000)07                            cmp     [endCol], DWORD 7
+   145 0000010D 0F8FA8030000                                jg      END_MOVE
+   146                                  
+   147                                                      ;// ILLEGAL MOVE: destination square is black
+   148                                  dst_BLK_test:
+   149 00000113 488B05(94020000)                            mov     rAx, [endRow]
+   150 0000011A 480305(94030000)                            add     rAx, [endCol]
+   151 00000121 4831D2                                      xor     rDx, rDx
+   152 00000124 BB02000000                                  mov     rBx, 2                       ;// divide the sum of the coords by 2
+   153 00000129 48F7F3                                      div     rBx                          ;// since all white spaces contain either two od coords or two even coords, then the sum must be even
+   154 0000012C 4883FA01                                    cmp     rDx, 1                      ;// if the remanider of div 2 is 1, then the destination square must be black
+   155 00000130 0F8485030000                                je      END_MOVE
+   156                                  
+   157                                                      ;// ILLEGAL MOVE: destination square is backwards (or if the starting square is rmpty)
+   158                                  dst_BACK_test:
+   159                                                      _startCoords
+   159                              <1> 
+   159 00000136 488B05(94000000)    <1>  mov rAx, [startRow]
+   159 0000013D BB08000000          <1>  mov rBx, 8
+   159 00000142 48F7E3              <1>  mul rBx
+   159                              <1> 
+   159 00000145 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
+   159 0000014C 488B0D(94010000)    <1>  mov rCx, [startCol]
+   159                              <1> 
+   160 00000153 8A040B                                      mov     AL, [rBx + rCx]
+   161 00000156 3C03                                        cmp     AL, 3
+   162 00000158 7463                                        je      ENDIF_P12
+   163 0000015A 3C04                                        cmp     AL, 4
+   164 0000015C 745F                                        je      ENDIF_P12
+   165 0000015E 3C02                        IF_P2:          cmp     AL, 2                       ;// if thr piece at the startCoords is a 2 (black piece)
+   166 00000160 7402                                        je      THEN_P2
+   167 00000162 EB39                                        jmp     IF_P1
+   168 00000164 488B05(94000000)                THEN_P2:    mov     rAx, [startRow]               ;// then thr piece can only move down the board (positivr x)
+   169 0000016B 48FFC0                                      inc     rAx
+   170 0000016E 483B05(94020000)                            cmp     rAx, [endRow]
+   171 00000175 0F8540030000                                jne     END_MOVE
+   172 0000017B EB40                                        jmp     ENDIF_P12
+   173                                  
+   174                                                      _startCoords
+   174                              <1> 
+   174 0000017D 488B05(94000000)    <1>  mov rAx, [startRow]
+   174 00000184 BB08000000          <1>  mov rBx, 8
+   174 00000189 48F7E3              <1>  mul rBx
+   174                              <1> 
+   174 0000018C 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
+   174 00000193 488B0D(94010000)    <1>  mov rCx, [startCol]
+   174                              <1> 
+   175 0000019A 8A040B                                      mov     AL, [rBx + rCx]
+   176 0000019D 3C01                        IF_P1:          cmp     AL, 1                       ;// if thr piece at the startCoords is a 1 (red piece)
+   177 0000019F 7405                                        je      THEN_P1
+   178 000001A1 E915030000                                  jmp     END_MOVE                 ;// if thr piece is neither a 1 nor a two, it cannot be moved
+   179 000001A6 488B05(94000000)                THEN_P1:    mov     rAx, [startRow]               ;// then thr piece can only move down the board (positivr x)
+   180 000001AD 48FFC8                                      dec     rAx
+   181 000001B0 483B05(94020000)                            cmp     rAx, [endRow]
+   182 000001B7 0F85FE020000                                jne     END_MOVE
+   183                                  
+   184                                      ENDIF_P12:
+   185                                  
+   186                                                      ;// ILLEGAL MOVE: destination square is occupied (also if the start space is rmpty)
+   187                                  dst_OCP_test:
+   188                                                      _startCoords
+   188                              <1> 
+   188 000001BD 488B05(94000000)    <1>  mov rAx, [startRow]
+   188 000001C4 BB08000000          <1>  mov rBx, 8
+   188 000001C9 48F7E3              <1>  mul rBx
+   188                              <1> 
+   188 000001CC 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
+   188 000001D3 488B0D(94010000)    <1>  mov rCx, [startCol]
+   188                              <1> 
+   189 000001DA 8A040B                                      mov     AL, [rBx + rCx]
+   190 000001DD 3C02                        IF_O2           cmp     AL, 2                       ;// if thr piece at the start is a 2 (black piece)
+   191 000001DF 7406                                        je      THEN_O2
+   192 000001E1 3C04                                        cmp     AL, 4
+   193 000001E3 7402                                        je      THEN_O2
+   194 000001E5 EB32                                        jmp     IF_O1
+   195                                          THEN_O2:    _endCoords                          ;// then it cannot jump a friendly piece
+   195                              <1>  THEN_O2: 
+   195                              <1> 
+   195 000001E7 488B05(94020000)    <1>  mov rAx, [endRow]
+   195 000001EE BB08000000          <1>  mov rBx, 8
+   195 000001F3 48F7E3              <1>  mul rBx
+   195                              <1> 
+   195 000001F6 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
+   195 000001FD 488B0D(94030000)    <1>  mov rCx, [endCol]
+   195                              <1> 
+   196 00000204 8A040B                                      mov     AL, [rBx + rCx]
+   197 00000207 3C02                                        cmp     Al, 2
+   198 00000209 0F84AC020000                                je      END_MOVE
+   199 0000020F 3C04                                        cmp     Al, 4
+   200 00000211 0F84A4020000                                je      END_MOVE
+   201 00000217 EB5A                                        jmp     ENDIF_O12
+   202                                  
+   203                                      IF_O1:          _startCoords
+   203                              <1>  IF_O1: 
+   203                              <1> 
+   203 00000219 488B05(94000000)    <1>  mov rAx, [startRow]
+   203 00000220 BB08000000          <1>  mov rBx, 8
+   203 00000225 48F7E3              <1>  mul rBx
+   203                              <1> 
+   203 00000228 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
+   203 0000022F 488B0D(94010000)    <1>  mov rCx, [startCol]
+   203                              <1> 
+   204 00000236 8A040B                                      mov     AL, [rBx + rCx]
+   205 00000239 3C01                                        cmp     AL, 1                       ;// if thr piece at the start is a 1 (red piece)
+   206 0000023B 7406                                        je      THEN_O1
+   207 0000023D 3C03                                        cmp     AL, 3
+   208 0000023F 7402                                        je      THEN_O1
+   209 00000241 EB30                                        jmp     ENDIF_O12
+   210                                          THEN_O1:    _endCoords
+   210                              <1>  THEN_O1: 
    210                              <1> 
-   210 00000253 488B05(94000000)    <1>  mov rAx, [startRow]
-   210 0000025A BB08000000          <1>  mov rBx, 8
-   210 0000025F 48F7E3              <1>  mul rBx
+   210 00000243 488B05(94020000)    <1>  mov rAx, [endRow]
+   210 0000024A BB08000000          <1>  mov rBx, 8
+   210 0000024F 48F7E3              <1>  mul rBx
    210                              <1> 
-   210 00000262 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
-   210 00000269 488B0D(94010000)    <1>  mov rCx, [startCol]
+   210 00000252 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
+   210 00000259 488B0D(94030000)    <1>  mov rCx, [endCol]
    210                              <1> 
-   211 00000270 8A040B                                      mov     AL, [rBx + rCx]
-   212 00000273 3C02                        IF_J2           cmp     AL, 2                       ;// if thr piece at the start is a 2 (black piece)
-   213 00000275 7402                                        je      THEN_J2
-   214 00000277 EB29                                        jmp     IF_J1
-   215                                          THEN_J2:    _endCoords                          ;// and the dest contains an enemy piece
-   215                              <1>  THEN_J2: 
-   215                              <1> 
-   215 00000279 488B05(94020000)    <1>  mov rAx, [endRow]
-   215 00000280 BB08000000          <1>  mov rBx, 8
-   215 00000285 48F7E3              <1>  mul rBx
-   215                              <1> 
-   215 00000288 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
-   215 0000028F 488B0D(94030000)    <1>  mov rCx, [endCol]
-   215                              <1> 
-   216 00000296 8A040B                                      mov     AL, [rBx + rCx]
-   217 00000299 3C01                                        cmp     Al, 1
-   218 0000029B 7454                                        je      ENDIF_J12                   ;// check for illegal jump
-   219 0000029D E902010000                                  jmp     legal_move                  ;// otherwise, just move normally
-   220                                  
-   221                                      IF_J1:          _startCoords
-   221                              <1>  IF_J1: 
+   211 00000260 8A040B                                      mov     AL, [rBx + rCx]
+   212 00000263 3C01                                        cmp     AL, 1                       ;// then it cannot jump a friendly piece
+   213 00000265 0F8450020000                                je      END_MOVE
+   214 0000026B 3C03                                        cmp     AL, 3
+   215 0000026D 0F8448020000                                je      END_MOVE
+   216                                  
+   217                                      ENDIF_O12:
+   218                                  
+   219                                                      ;// Testing for attrmpted jump
+   220                                  jmp_test:
+   221                                                      _startCoords
    221                              <1> 
-   221 000002A2 488B05(94000000)    <1>  mov rAx, [startRow]
-   221 000002A9 BB08000000          <1>  mov rBx, 8
-   221 000002AE 48F7E3              <1>  mul rBx
+   221 00000273 488B05(94000000)    <1>  mov rAx, [startRow]
+   221 0000027A BB08000000          <1>  mov rBx, 8
+   221 0000027F 48F7E3              <1>  mul rBx
    221                              <1> 
-   221 000002B1 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
-   221 000002B8 488B0D(94010000)    <1>  mov rCx, [startCol]
+   221 00000282 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
+   221 00000289 488B0D(94010000)    <1>  mov rCx, [startCol]
    221                              <1> 
-   222 000002BF 8A040B                                      mov     AL, [rBx + rCx]
-   223 000002C2 3C01                                        cmp     AL, 1                       ;// if thr piece at the start is a 1 (red piece)
-   224 000002C4 7402                                        je      THEN_J1
-   225 000002C6 EB29                                        jmp     ENDIF_J12
-   226                                          THEN_J1:    _endCoords                          ;// and the dest contains an enemy piece
-   226                              <1>  THEN_J1: 
-   226                              <1> 
-   226 000002C8 488B05(94020000)    <1>  mov rAx, [endRow]
-   226 000002CF BB08000000          <1>  mov rBx, 8
-   226 000002D4 48F7E3              <1>  mul rBx
-   226                              <1> 
-   226 000002D7 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
-   226 000002DE 488B0D(94030000)    <1>  mov rCx, [endCol]
-   226                              <1> 
-   227 000002E5 8A040B                                      mov     Al, [rBx + rCx]
-   228 000002E8 3C02                                        cmp     AL, 2
-   229 000002EA 7405                                        je      ENDIF_J12                   ;// check for illegal jump
-   230 000002EC E9B3000000                                  jmp     legal_move                  ;// otherwise, just move normally
-   231                                  
-   232                                      ENDIF_J12:
-   233                                  
-   234                                                      ;// ILLEGAL MOVE: jump is out of bounds
-   235                                  jmp_OOB_test:
-   236 000002F1 488B05(94020000)                            mov     rAx, [endRow]                     ;//converts inout endCoords to proper jump destination
-   237 000002F8 482B05(94000000)                            sub     rAx, [startRow]
-   238 000002FF BB02000000                                  mov     rBx, 2
-   239 00000304 48F7EB                                      imul    rBx
-   240 00000307 480305(94000000)                            add     rAx, [startRow]
-   241                                  
-   242 0000030E 4883F800                                    cmp     rAx, 0
-   243 00000312 0F8C72010000                                jl      END_MOVE
-   244 00000318 4883F807                                    cmp     rAx, 7
-   245 0000031C 0F8F68010000                                jg      END_MOVE
-   246                                  
-   247 00000322 488B05(94030000)                            mov     rAx, [endCol]                     ;//converts inout endCoords to proper jump destination
-   248 00000329 482B05(94010000)                            sub     rAx, [startCol]
-   249 00000330 B902000000                                  mov     rCx, 2
-   250 00000335 48F7E9                                      imul     rCx
-   251 00000338 480305(94010000)                            add     rAx, [startCol]
+   222 00000290 8A040B                                      mov     AL, [rBx + rCx]
+   223 00000293 3C02                        IF_J2:          cmp     AL, 2                       ;// if the piece at the start is a 2 (black piece)
+   224 00000295 7406                                        je      THEN_J2
+   225 00000297 3C04                                        cmp     AL, 4
+   226 00000299 7402                                        je      THEN_J2
+   227 0000029B EB2D                                        jmp     IF_J1
+   228                                          THEN_J2:    _endCoords                          ;// and the dest contains an enemy piece
+   228                              <1>  THEN_J2: 
+   228                              <1> 
+   228 0000029D 488B05(94020000)    <1>  mov rAx, [endRow]
+   228 000002A4 BB08000000          <1>  mov rBx, 8
+   228 000002A9 48F7E3              <1>  mul rBx
+   228                              <1> 
+   228 000002AC 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
+   228 000002B3 488B0D(94030000)    <1>  mov rCx, [endCol]
+   228                              <1> 
+   229 000002BA 8A040B                                      mov     AL, [rBx + rCx]
+   230 000002BD 3C01                                        cmp     Al, 1
+   231 000002BF 7460                                        je      ENDIF_J12                   ;// check for illegal jump
+   232 000002C1 3C03                                        cmp     AL, 3
+   233 000002C3 745C                                        je      ENDIF_J12
+   234 000002C5 E90B010000                                  jmp     legal_move                  ;// otherwise, just move normally
+   235                                  
+   236                                      IF_J1:          _startCoords
+   236                              <1>  IF_J1: 
+   236                              <1> 
+   236 000002CA 488B05(94000000)    <1>  mov rAx, [startRow]
+   236 000002D1 BB08000000          <1>  mov rBx, 8
+   236 000002D6 48F7E3              <1>  mul rBx
+   236                              <1> 
+   236 000002D9 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
+   236 000002E0 488B0D(94010000)    <1>  mov rCx, [startCol]
+   236                              <1> 
+   237 000002E7 8A040B                                      mov     AL, [rBx + rCx]
+   238 000002EA 3C01                                        cmp     AL, 1                       ;// if thr piece at the start is a 1 (red piece)
+   239 000002EC 7406                                        je      THEN_J1
+   240 000002EE 3C03                                        cmp     AL, 3
+   241 000002F0 7402                                        je      THEN_J1
+   242 000002F2 EB2D                                        jmp     ENDIF_J12
+   243                                          THEN_J1:    _endCoords                          ;// and the dest contains an enemy piece
+   243                              <1>  THEN_J1: 
+   243                              <1> 
+   243 000002F4 488B05(94020000)    <1>  mov rAx, [endRow]
+   243 000002FB BB08000000          <1>  mov rBx, 8
+   243 00000300 48F7E3              <1>  mul rBx
+   243                              <1> 
+   243 00000303 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
+   243 0000030A 488B0D(94030000)    <1>  mov rCx, [endCol]
+   243                              <1> 
+   244 00000311 8A040B                                      mov     Al, [rBx + rCx]
+   245 00000314 3C02                                        cmp     AL, 2
+   246 00000316 7409                                        je      ENDIF_J12                   ;// check for illegal jump
+   247 00000318 3C04                                        cmp     AL, 4
+   248 0000031A 7405                                        je      ENDIF_J12
+   249 0000031C E9B4000000                                  jmp     legal_move                  ;// otherwise, just move normally
+   250                                  
+   251                                      ENDIF_J12:
    252                                  
-   253 0000033F 4883F800                                    cmp     rAx, 0
-   254 00000343 0F8C41010000                                jl      END_MOVE
-   255 00000349 4883F807                                    cmp     rAx, 7
-   256 0000034D 0F8F37010000                                jg      END_MOVE
-   257                                  
-   258                                                      ;// ILLEGAL MOVE: jump destination is occupied
-   259                                  jmp_OCP_test:
-   260 00000353 488B05(94020000)                            mov     rAx, [endRow]                     ;//converts inout endCoords to proper jump destination
-   261 0000035A 482B05(94000000)                            sub     rAx, [startRow]
-   262 00000361 BB02000000                                  mov     rBx, 2
-   263 00000366 48F7EB                                      imul    rBx
-   264 00000369 480305(94000000)                            add     rAx, [startRow]
-   265 00000370 488B1CC5[51000000]                          mov     rBx, [checkerboard+8*rAx]
-   266                                  
-   267 00000378 488B05(94030000)                            mov     rAx, [endCol]                     ;//converts inout endCoords to proper jump destination
-   268 0000037F 482B05(94010000)                            sub     rAx, [startCol]
-   269 00000386 B902000000                                  mov     rCx, 2
-   270 0000038B 48F7E9                                      imul    rCx
-   271 0000038E 480305(94010000)                            add     rAx, [startCol]
-   272 00000395 4889C1                                      mov     rCx, rAx
-   273                                  
-   274 00000398 833C0B00                                    cmp     [rBx + rCx], DWORD 0
-   275 0000039C 0F85E8000000                                jne     END_MOVE
-   276 000003A2 EB50                                        jmp     legal_jump
-   277                                  
-   278                                                      ;// LEGAL MOVE OR JUMP:
-   279                                  legal_move:
-   280                                                      _startCoords                            ;// puts startRow and startCol into [rBx][rCx]
-   280                              <1> 
-   280 000003A4 488B05(94000000)    <1>  mov rAx, [startRow]
-   280 000003AB BB08000000          <1>  mov rBx, 8
-   280 000003B0 48F7E3              <1>  mul rBx
-   280                              <1> 
-   280 000003B3 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
-   280 000003BA 488B0D(94010000)    <1>  mov rCx, [startCol]
-   280                              <1> 
-   281 000003C1 4831C0                                      xor     rAx, rAx
-   282 000003C4 8A040B                                      mov     AL, [rBx + rCx]                  ;// move the value at [startRow][startCol] into AL
-   283 000003C7 50                                          push    rAx                             ;// save thr piece to be moved
-   284                                  
-   285 000003C8 4831C0                                      xor     rAx, rAx
-   286 000003CB 88040B                                      mov     [rBx + rCx], AL                  ;// rmpty the space
-   287                                  
-   288                                                      _endCoords                              ;// puts endRow and endCol into [rBx][rCx]
-   288                              <1> 
-   288 000003CE 488B05(94020000)    <1>  mov rAx, [endRow]
-   288 000003D5 BB08000000          <1>  mov rBx, 8
-   288 000003DA 48F7E3              <1>  mul rBx
-   288                              <1> 
-   288 000003DD 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
-   288 000003E4 488B0D(94030000)    <1>  mov rCx, [endCol]
-   288                              <1> 
-   289 000003EB 58                                          pop     rAx                             ;// restorr piece
-   290 000003EC 88040B                                      mov     [rBx + rCx], AL                  ;// put thr pice into checkerboard at [endRow][endCol]
-   291 000003EF E996000000              		    jmp END_MOVE
-   292                                  legal_jump:                                                 ;// code below is identical to legal_move, but the end coords arr pushed by one to cause the jump
-   293                                                      _startCoords
-   293                              <1> 
-   293 000003F4 488B05(94000000)    <1>  mov rAx, [startRow]
-   293 000003FB BB08000000          <1>  mov rBx, 8
-   293 00000400 48F7E3              <1>  mul rBx
-   293                              <1> 
-   293 00000403 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
-   293 0000040A 488B0D(94010000)    <1>  mov rCx, [startCol]
-   293                              <1> 
-   294 00000411 4831C0                                      xor     rAx, rAx
-   295 00000414 8A040B                                      mov     AL, [rBx + rCx]
-   296 00000417 50                                          push    rAx
-   297                                  
-   298 00000418 4831C0                                      xor     rAx, rAx
-   299 0000041B 88040B                                      mov     [rBx + rCx], AL
-   300                                  
-   301                                                      _endCoords                              ;// rmpty the jumped over space
-   301                              <1> 
-   301 0000041E 488B05(94020000)    <1>  mov rAx, [endRow]
-   301 00000425 BB08000000          <1>  mov rBx, 8
-   301 0000042A 48F7E3              <1>  mul rBx
-   301                              <1> 
-   301 0000042D 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
-   301 00000434 488B0D(94030000)    <1>  mov rCx, [endCol]
-   301                              <1> 
-   302 0000043B 4831C0                                      xor     rAx, rAx
-   303 0000043E 88040B                                      mov     [rBx + rCx], AL
-   304                                  
-   305 00000441 488B05(94020000)                            mov     rAx, [endRow]                     ;//converts inout endCoords to proper jump destination
-   306 00000448 482B05(94000000)                            sub     rAx, [startRow]
-   307 0000044F BB02000000                                  mov     rBx, 2
-   308 00000454 48F7EB                                      imul    rBx
-   309 00000457 480305(94000000)                            add     rAx, [startRow]
-   310 0000045E 488B1CC5[51000000]                          mov     rBx, [checkerboard+8*rAx]
-   311                                  
-   312 00000466 488B05(94030000)                            mov     rAx, [endCol]                     ;//converts inout endCoords to proper jump destination
-   313 0000046D 482B05(94010000)                            sub     rAx, [startCol]
-   314 00000474 B902000000                                  mov     rCx, 2
-   315 00000479 48F7E9                                      imul    rCx
-   316 0000047C 480305(94010000)                            add     rAx, [startCol]
-   317 00000483 4889C1                                      mov     rCx, rAx
-   318                                  
-   319 00000486 58                                          pop     rAx
-   320 00000487 88040B                                      mov     [rBx + rCx], AL
-   321                                  END_MOVE:
-   322 0000048A E871FBFFFF                                  call outputBoard
-   323 0000048F C3                                          ret
-   324                                  
-   325                                  kingCheck:
-   326                                  
-   327 00000490 4831C9                                      xor     rCx, rCx                        ;// int i = 0
-   328 00000493 4883F908                    FOR1_KC:        cmp     rCx, 8                          ;// i < 8
-   329 00000497 7C02                                        jl      DO1_KC
-   330 00000499 EB1D                                        jmp     ENDFOR1_KC
-   331                                  
-   332 0000049B 4831C0                          DO1_KC:     xor     rAx, rAx                        ;// row = 0
-   333 0000049E 488B98[51000000]                            mov     rBx, [checkerboard+rAx]          ;// move the target row into rBx
-   334                                  
-   335 000004A5 8A040B                                      mov     AL, [rBx + rCx]
-   336 000004A8 3C01                                        cmp     Al, 1
-   337 000004AA 7402                                        je      KING_ONE
-   338 000004AC EB05                                        jmp     FORNEXT1_KC
-   339                                  
-   340 000004AE B003                        KING_ONE:       mov     AL, 3                           ;// replace the 1 in the back row with a 3 (red king)
-   341 000004B0 88040B                                      mov     [rBx + rCx], AL
-   342                                  
-   343                                      FORNEXT1_KC:
-   344 000004B3 48FFC1                                      inc     rCx                             ;// i++
-   345 000004B6 EBDB                                        jmp     FOR1_KC
-   346                                      ENDFOR1_KC:
-   347 000004B8 4831C9                                      xor     rCx, rCx                        ;// int i = 0
-   348 000004BB 4883F908                    FOR2_KC:        cmp     rCx, 8                          ;// i < 8
-   349 000004BF 7C02                                        jl      DO2_KC
-   350 000004C1 EB1F                                        jmp     ENDFOR2_KC
+   253                                                      ;// ILLEGAL MOVE: jump is out of bounds
+   254                                  jmp_OOB_test:
+   255 00000321 488B05(94020000)                            mov     rAx, [endRow]                     ;//converts inout endCoords to proper jump destination
+   256 00000328 482B05(94000000)                            sub     rAx, [startRow]
+   257 0000032F BB02000000                                  mov     rBx, 2
+   258 00000334 48F7EB                                      imul    rBx
+   259 00000337 480305(94000000)                            add     rAx, [startRow]
+   260                                  
+   261 0000033E 4883F800                                    cmp     rAx, 0
+   262 00000342 0F8C73010000                                jl      END_MOVE
+   263 00000348 4883F807                                    cmp     rAx, 7
+   264 0000034C 0F8F69010000                                jg      END_MOVE
+   265                                  
+   266 00000352 488B05(94030000)                            mov     rAx, [endCol]                     ;//converts inout endCoords to proper jump destination
+   267 00000359 482B05(94010000)                            sub     rAx, [startCol]
+   268 00000360 B902000000                                  mov     rCx, 2
+   269 00000365 48F7E9                                      imul     rCx
+   270 00000368 480305(94010000)                            add     rAx, [startCol]
+   271                                  
+   272 0000036F 4883F800                                    cmp     rAx, 0
+   273 00000373 0F8C42010000                                jl      END_MOVE
+   274 00000379 4883F807                                    cmp     rAx, 7
+   275 0000037D 0F8F38010000                                jg      END_MOVE
+   276                                  
+   277                                                      ;// ILLEGAL MOVE: jump destination is occupied
+   278                                  jmp_OCP_test:
+   279 00000383 488B05(94020000)                            mov     rAx, [endRow]                     ;//converts inout endCoords to proper jump destination
+   280 0000038A 482B05(94000000)                            sub     rAx, [startRow]
+   281 00000391 BB02000000                                  mov     rBx, 2
+   282 00000396 48F7EB                                      imul    rBx
+   283 00000399 480305(94000000)                            add     rAx, [startRow]
+   284 000003A0 488B1CC5[51000000]                          mov     rBx, [checkerboard+8*rAx]
+   285                                  
+   286 000003A8 488B05(94030000)                            mov     rAx, [endCol]                     ;//converts inout endCoords to proper jump destination
+   287 000003AF 482B05(94010000)                            sub     rAx, [startCol]
+   288 000003B6 B902000000                                  mov     rCx, 2
+   289 000003BB 48F7E9                                      imul    rCx
+   290 000003BE 480305(94010000)                            add     rAx, [startCol]
+   291 000003C5 4889C1                                      mov     rCx, rAx
+   292                                  
+   293 000003C8 66833C0B00                                  cmp     [rBx + rCx], WORD 0
+   294 000003CD 0F85E8000000                                jne     END_MOVE
+   295 000003D3 EB50                                        jmp     legal_jump
+   296                                  
+   297                                                      ;// LEGAL MOVE OR JUMP:
+   298                                  legal_move:
+   299                                                      _startCoords                            ;// puts startRow and startCol into [rBx][rCx]
+   299                              <1> 
+   299 000003D5 488B05(94000000)    <1>  mov rAx, [startRow]
+   299 000003DC BB08000000          <1>  mov rBx, 8
+   299 000003E1 48F7E3              <1>  mul rBx
+   299                              <1> 
+   299 000003E4 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
+   299 000003EB 488B0D(94010000)    <1>  mov rCx, [startCol]
+   299                              <1> 
+   300 000003F2 4831C0                                      xor     rAx, rAx
+   301 000003F5 8A040B                                      mov     AL, [rBx + rCx]                  ;// move the value at [startRow][startCol] into AL
+   302 000003F8 50                                          push    rAx                             ;// save thr piece to be moved
+   303                                  
+   304 000003F9 4831C0                                      xor     rAx, rAx
+   305 000003FC 88040B                                      mov     [rBx + rCx], AL                  ;// rmpty the space
+   306                                  
+   307                                                      _endCoords                              ;// puts endRow and endCol into [rBx][rCx]
+   307                              <1> 
+   307 000003FF 488B05(94020000)    <1>  mov rAx, [endRow]
+   307 00000406 BB08000000          <1>  mov rBx, 8
+   307 0000040B 48F7E3              <1>  mul rBx
+   307                              <1> 
+   307 0000040E 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
+   307 00000415 488B0D(94030000)    <1>  mov rCx, [endCol]
+   307                              <1> 
+   308 0000041C 58                                          pop     rAx                             ;// restorr piece
+   309 0000041D 88040B                                      mov     [rBx + rCx], AL                  ;// put thr pice into checkerboard at [endRow][endCol]
+   310 00000420 E996000000              		    jmp END_MOVE
+   311                                  legal_jump:                                                 ;// code below is identical to legal_move, but the end coords arr pushed by one to cause the jump
+   312                                                      _startCoords
+   312                              <1> 
+   312 00000425 488B05(94000000)    <1>  mov rAx, [startRow]
+   312 0000042C BB08000000          <1>  mov rBx, 8
+   312 00000431 48F7E3              <1>  mul rBx
+   312                              <1> 
+   312 00000434 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
+   312 0000043B 488B0D(94010000)    <1>  mov rCx, [startCol]
+   312                              <1> 
+   313 00000442 4831C0                                      xor     rAx, rAx
+   314 00000445 8A040B                                      mov     AL, [rBx + rCx]
+   315 00000448 50                                          push    rAx
+   316                                  
+   317 00000449 4831C0                                      xor     rAx, rAx
+   318 0000044C 88040B                                      mov     [rBx + rCx], AL
+   319                                  
+   320                                                      _endCoords                              ;// rmpty the jumped over space
+   320                              <1> 
+   320 0000044F 488B05(94020000)    <1>  mov rAx, [endRow]
+   320 00000456 BB08000000          <1>  mov rBx, 8
+   320 0000045B 48F7E3              <1>  mul rBx
+   320                              <1> 
+   320 0000045E 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
+   320 00000465 488B0D(94030000)    <1>  mov rCx, [endCol]
+   320                              <1> 
+   321 0000046C 4831C0                                      xor     rAx, rAx
+   322 0000046F 88040B                                      mov     [rBx + rCx], AL
+   323                                  
+   324 00000472 488B05(94020000)                            mov     rAx, [endRow]                     ;//converts inout endCoords to proper jump destination
+   325 00000479 482B05(94000000)                            sub     rAx, [startRow]
+   326 00000480 BB02000000                                  mov     rBx, 2
+   327 00000485 48F7EB                                      imul    rBx
+   328 00000488 480305(94000000)                            add     rAx, [startRow]
+   329 0000048F 488B1CC5[51000000]                          mov     rBx, [checkerboard+8*rAx]
+   330                                  
+   331 00000497 488B05(94030000)                            mov     rAx, [endCol]                     ;//converts inout endCoords to proper jump destination
+   332 0000049E 482B05(94010000)                            sub     rAx, [startCol]
+   333 000004A5 B902000000                                  mov     rCx, 2
+   334 000004AA 48F7E9                                      imul    rCx
+   335 000004AD 480305(94010000)                            add     rAx, [startCol]
+   336 000004B4 4889C1                                      mov     rCx, rAx
+   337                                  
+   338 000004B7 58                                          pop     rAx
+   339 000004B8 88040B                                      mov     [rBx + rCx], AL
+   340                                  END_MOVE:
+   341 000004BB E806000000              		    call kingCheck
+   342 000004C0 E83BFBFFFF                                  call outputBoard
+   343 000004C5 C3                                          ret
+   344                                  
+   345                                  kingCheck:
+   346                                  
+   347 000004C6 4831C9                                      xor     rCx, rCx                        ;// int i = 0
+   348 000004C9 4883F908                    FOR1_KC:        cmp     rCx, 8                          ;// i < 8
+   349 000004CD 7C02                                        jl      DO1_KC
+   350 000004CF EB1D                                        jmp     ENDFOR1_KC
    351                                  
-   352 000004C3 B81C000000                      DO2_KC:     mov     rAx, 28                         ;// row = 7
-   353 000004C8 488B98[51000000]                            mov     rBx, [checkerboard+rAx]          ;// move the target row into rBx
+   352 000004D1 4831C0                          DO1_KC:     xor     rAx, rAx                        ;// row = 0
+   353 000004D4 488B98[51000000]                            mov     rBx, [checkerboard+rAx]         ;// move the target row into rBx
    354                                  
-   355 000004CF 8A040B                                      mov     AL, [rBx + rCx]
-   356 000004D2 3C02                                        cmp     Al, 2
-   357 000004D4 7402                                        je      KING_TWO
-   358 000004D6 EB05                                        jmp     FORNEXT2_KC
+   355 000004DB 8A040B                                      mov     AL, [rBx + rCx]
+   356 000004DE 3C01                                        cmp     AL, 1
+   357 000004E0 7402                                        je      KING_ONE
+   358 000004E2 EB05                                        jmp     FORNEXT1_KC
    359                                  
-   360 000004D8 B004                        KING_TWO:       mov     AL, 4                           ;// replace the 1 in the back row with a 3 (red king)
-   361 000004DA 88040B                                      mov     [rBx + rCx], AL
+   360 000004E4 B003                        KING_ONE:       mov     AL, 3                           ;// replace the 1 in the back row with a 3 (red king)
+   361 000004E6 88040B                                      mov     [rBx + rCx], AL
    362                                  
-   363                                      FORNEXT2_KC:
-   364                                  
-   365 000004DD 48FFC1                                      inc     rCx                             ;// i++
-   366 000004E0 EBD9                                        jmp     FOR2_KC
-   367                                      ENDFOR2_KC:
-   368 000004E2 C3                                          ret
-   369                                  
-   370                                  ENDPRGM:            ;call    CRLF
+   363                                      FORNEXT1_KC:
+   364 000004E9 48FFC1                                      inc     rCx                             ;// i++
+   365 000004EC EBDB                                        jmp     FOR1_KC
+   366                                      ENDFOR1_KC:
+   367 000004EE 4831C9                                      xor     rCx, rCx                        ;// int i = 0
+   368 000004F1 4883F908                    FOR2_KC:        cmp     rCx, 8                          ;// i < 8
+   369 000004F5 7C02                                        jl      DO2_KC
+   370 000004F7 EB23                                        jmp     ENDFOR2_KC
    371                                  
-   372                                  ;INVOKE ExitProcess, 0
-   373                                  ;main ENDP
-   374                                  ;END main
+   372 000004F9 4831C0                          DO2_KC:     xor     rAx, rAx                           ;// row = 7
+   373 000004FC B807000000              		    mov     rAx, 7
+   374 00000501 488B1CC5[51000000]                          mov     rBx, [checkerboard+8*rAx]          ;// move the target row into rBx
+   375                                  
+   376 00000509 8A040B                                      mov     AL, [rBx + rCx]
+   377 0000050C 3C02                                        cmp     Al, 2
+   378 0000050E 7402                                        je      KING_TWO
+   379 00000510 EB05                                        jmp     FORNEXT2_KC
+   380                                  
+   381 00000512 B004                        KING_TWO:       mov     AL, 4                           ;// replace the 1 in the back row with a 3 (red king)
+   382 00000514 88040B                                      mov     [rBx + rCx], AL
+   383                                  
+   384                                      FORNEXT2_KC:
+   385                                  
+   386 00000517 48FFC1                                      inc     rCx                             ;// i++
+   387 0000051A EBD5                                        jmp     FOR2_KC
+   388                                      ENDFOR2_KC:
+   389 0000051C C3                                          ret

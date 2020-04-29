@@ -63,7 +63,6 @@ endCol:
      
 
 SECTION .text
-;main:
 
 outputBoard:
                         mov rax, SYS_OPEN
@@ -150,8 +149,8 @@ dst_BLK_test:
                     mov     rAx, [endRow]
                     add     rAx, [endCol]
                     xor     rDx, rDx
-                    mov     rBx, 2                      ;// divide the sum of the coords by 2
-                    div     rBx                         ;// since all white spaces contain either two od coords or two even coords, then the sum must be even
+                    mov     rBx, 2                       ;// divide the sum of the coords by 2
+                    div     rBx                          ;// since all white spaces contain either two od coords or two even coords, then the sum must be even
                     cmp     rDx, 1                      ;// if the remanider of div 2 is 1, then the destination square must be black
                     je      END_MOVE
 
@@ -159,6 +158,10 @@ dst_BLK_test:
 dst_BACK_test:
                     _startCoords
                     mov     AL, [rBx + rCx]
+                    cmp     AL, 3
+                    je      ENDIF_P12
+                    cmp     AL, 4
+                    je      ENDIF_P12
     IF_P2:          cmp     AL, 2                       ;// if thr piece at the startCoords is a 2 (black piece)
                     je      THEN_P2
                     jmp     IF_P1
@@ -186,10 +189,14 @@ dst_OCP_test:
                     mov     AL, [rBx + rCx]
     IF_O2           cmp     AL, 2                       ;// if thr piece at the start is a 2 (black piece)
                     je      THEN_O2
+                    cmp     AL, 4
+                    je      THEN_O2
                     jmp     IF_O1
         THEN_O2:    _endCoords                          ;// then it cannot jump a friendly piece
                     mov     AL, [rBx + rCx]
                     cmp     Al, 2
+                    je      END_MOVE
+                    cmp     Al, 4
                     je      END_MOVE
                     jmp     ENDIF_O12
 
@@ -197,10 +204,14 @@ dst_OCP_test:
                     mov     AL, [rBx + rCx]
                     cmp     AL, 1                       ;// if thr piece at the start is a 1 (red piece)
                     je      THEN_O1
+                    cmp     AL, 3
+                    je      THEN_O1
                     jmp     ENDIF_O12
         THEN_O1:    _endCoords
-                    mov     Al, [rBx + rCx]
+                    mov     AL, [rBx + rCx]
                     cmp     AL, 1                       ;// then it cannot jump a friendly piece
+                    je      END_MOVE
+                    cmp     AL, 3
                     je      END_MOVE
 
     ENDIF_O12:
@@ -209,24 +220,32 @@ dst_OCP_test:
 jmp_test:
                     _startCoords
                     mov     AL, [rBx + rCx]
-    IF_J2           cmp     AL, 2                       ;// if thr piece at the start is a 2 (black piece)
+    IF_J2:          cmp     AL, 2                       ;// if the piece at the start is a 2 (black piece)
+                    je      THEN_J2
+                    cmp     AL, 4
                     je      THEN_J2
                     jmp     IF_J1
         THEN_J2:    _endCoords                          ;// and the dest contains an enemy piece
                     mov     AL, [rBx + rCx]
                     cmp     Al, 1
                     je      ENDIF_J12                   ;// check for illegal jump
+                    cmp     AL, 3
+                    je      ENDIF_J12
                     jmp     legal_move                  ;// otherwise, just move normally
 
     IF_J1:          _startCoords
                     mov     AL, [rBx + rCx]
                     cmp     AL, 1                       ;// if thr piece at the start is a 1 (red piece)
                     je      THEN_J1
+                    cmp     AL, 3
+                    je      THEN_J1
                     jmp     ENDIF_J12
         THEN_J1:    _endCoords                          ;// and the dest contains an enemy piece
                     mov     Al, [rBx + rCx]
                     cmp     AL, 2
                     je      ENDIF_J12                   ;// check for illegal jump
+                    cmp     AL, 4
+                    je      ENDIF_J12
                     jmp     legal_move                  ;// otherwise, just move normally
 
     ENDIF_J12:
@@ -271,7 +290,7 @@ jmp_OCP_test:
                     add     rAx, [startCol]
                     mov     rCx, rAx
 
-                    cmp     [rBx + rCx], DWORD 0
+                    cmp     [rBx + rCx], WORD 0
                     jne     END_MOVE
                     jmp     legal_jump
 
@@ -319,6 +338,7 @@ legal_jump:                                                 ;// code below is id
                     pop     rAx
                     mov     [rBx + rCx], AL
 END_MOVE:
+		    call kingCheck
                     call outputBoard
                     ret
 
@@ -330,10 +350,10 @@ kingCheck:
                     jmp     ENDFOR1_KC
 
         DO1_KC:     xor     rAx, rAx                        ;// row = 0
-                    mov     rBx, [checkerboard+rAx]          ;// move the target row into rBx
+                    mov     rBx, [checkerboard+rAx]         ;// move the target row into rBx
 
                     mov     AL, [rBx + rCx]
-                    cmp     Al, 1
+                    cmp     AL, 1
                     je      KING_ONE
                     jmp     FORNEXT1_KC
 
@@ -349,8 +369,9 @@ kingCheck:
                     jl      DO2_KC
                     jmp     ENDFOR2_KC
 
-        DO2_KC:     mov     rAx, 28                         ;// row = 7
-                    mov     rBx, [checkerboard+rAx]          ;// move the target row into rBx
+        DO2_KC:     xor     rAx, rAx                           ;// row = 7
+		    mov     rAx, 7
+                    mov     rBx, [checkerboard+8*rAx]          ;// move the target row into rBx
 
                     mov     AL, [rBx + rCx]
                     cmp     Al, 2
@@ -366,9 +387,3 @@ kingCheck:
                     jmp     FOR2_KC
     ENDFOR2_KC:
                     ret
-
-ENDPRGM:            ;call    CRLF
-
-;INVOKE ExitProcess, 0
-;main ENDP
-;END main
