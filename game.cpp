@@ -6,7 +6,11 @@
 #include <iostream>
 
 #include "constants.h"
-#include "rules.cpp"
+
+extern "C" {
+void outputBoard();
+void movePiece(int startX, int startY, int endX, int endY);
+}
 
 Game::Game() {}
 
@@ -98,9 +102,10 @@ bool Game::Run() {
         } else {
           b = mouseX / 100;
           a = mouseY / 100;
-          vector<int> start = {boardX, boardY};
-          vector<int> end = {a, b};
-          move(graphics_.checkerboard_, start, end);
+          //          vector<int> start = {boardX, boardY};
+          //          vector<int> end = {a, b};
+          //          move(graphics_.checkerboard_, start, end);
+          movePiece(boardX, boardY, b, a);
           piece_selected = false;
         }
       }

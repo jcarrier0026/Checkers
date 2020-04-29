@@ -1,0 +1,935 @@
+     1                                  %include "linux64.inc"
+     1                              <1> Section .bss
+     2 00000000 <res 00000064>      <1> 	digitSpace resb 100
+     3 00000064 <res 00000008>      <1> 	digitSpacePos resb 8
+     4 0000006C <res 00000008>      <1> 	printSpace resb 8
+     5                              <1> %macro print 1
+     6                              <1> 	mov rax, %1
+     7                              <1> 	mov [printSpace], rax
+     8                              <1> 	mov rbx, 0
+     9                              <1> %%printLoop:
+    10                              <1> 	mov cl, [rax]
+    11                              <1> 	cmp cl, 0
+    12                              <1> 	je %%endPrintLoop
+    13                              <1> 	inc rbx
+    14                              <1> 	inc rax
+    15                              <1> 	jmp %%printLoop
+    16                              <1> %%endPrintLoop:
+    17                              <1> 	mov rax, SYS_WRITE
+    18                              <1> 	mov rdi, STDIN
+    19                              <1> 	mov rsi, [printSpace]
+    20                              <1> 	mov rdx, rbx
+    21                              <1> 	syscall
+    22                              <1> %endmacro
+    23                              <1> 
+    24                              <1> %macro printVal 1
+    25                              <1> 	mov rax, %1
+    26                              <1> %%printRAX:
+    27                              <1> 	mov rcx, digitSpace
+    28                              <1> ;	mov rbx, 10
+    29                              <1> ;	mov [rcx], rbx
+    30                              <1> ;	inc rcx
+    31                              <1> 	mov [digitSpacePos], rcx
+    32                              <1> 
+    33                              <1> %%printRAXLoop:
+    34                              <1> 	mov rdx, 0
+    35                              <1> 	mov rbx, 10
+    36                              <1> 	div rbx
+    37                              <1> 	push rax
+    38                              <1> 	add rdx, 48
+    39                              <1> 
+    40                              <1> 	mov rcx, [digitSpacePos]
+    41                              <1> 	mov [rcx], dl
+    42                              <1> 	inc rcx
+    43                              <1> 	mov [digitSpacePos], rcx
+    44                              <1> 	
+    45                              <1> 	pop rax
+    46                              <1> 	cmp rax, 0
+    47                              <1> 	jne %%printRAXLoop
+    48                              <1> 
+    49                              <1> %%printRAXLoop2:
+    50                              <1> 	mov rcx, [digitSpacePos]
+    51                              <1> 
+    52                              <1> 	mov rax, 1
+    53                              <1> 	mov rdi, 1
+    54                              <1> 	mov rsi, rcx
+    55                              <1> 	mov rdx, 1
+    56                              <1> 	syscall
+    57                              <1> 
+    58                              <1> 	mov rcx, [digitSpacePos]
+    59                              <1> 	dec rcx
+    60                              <1> 	mov [digitSpacePos], rcx
+    61                              <1> 
+    62                              <1> 	cmp rcx, digitSpace
+    63                              <1> 	jge %%printRAXLoop2
+    64                              <1> 
+    65                              <1> %endmacro
+    66                              <1> 
+    67                              <1> %macro exit 0
+    68                              <1> 	mov rax, SYS_EXIT
+    69                              <1> 	mov rdi, 0
+    70                              <1> 	syscall
+    71                              <1> %endmacro
+    72                              <1> 
+    73                              <1> STDIN_FILENO	equ	0
+    74                              <1> STDOUT_FILENO	equ	1
+    75                              <1> STDERR_FILENO	equ	2
+    76                              <1> STDIN	equ	0
+    77                              <1> STDOUT	equ	1
+    78                              <1> STDERR	equ	2
+    79                              <1> 
+    80                              <1> O_RDONLY	equ	0
+    81                              <1> O_WRONLY	equ	1
+    82                              <1> O_RDWR		equ	2
+    83                              <1> 
+    84                              <1> O_CREAT		equ	64
+    85                              <1> O_EXCL		equ	128
+    86                              <1> O_NOCTTY	equ	256
+    87                              <1> O_TRUNC		equ	512
+    88                              <1> O_APPEND	equ	1024
+    89                              <1> O_NONBLOCK	equ	2048
+    90                              <1> O_NDELAY	equ	2048
+    91                              <1> O_DSYNC		equ	4096
+    92                              <1> O_ASYNC		equ	8192
+    93                              <1> O_DIRECT	equ	16384
+    94                              <1> O_DIRECTORY	equ	65536
+    95                              <1> O_NOFOLLOW	equ	131072
+    96                              <1> O_NOATIME	equ	262144
+    97                              <1> O_CLOEXEC	equ	524288
+    98                              <1> O_SYNC		equ	1052672
+    99                              <1> O_PATH		equ	2097152
+   100                              <1> O_TMPFILE	equ	4259840
+   101                              <1> 
+   102                              <1> O_LARGEFILE	equ	0
+   103                              <1> 
+   104                              <1> SYS_READ	equ	0
+   105                              <1> SYS_WRITE	equ	1
+   106                              <1> SYS_OPEN	equ	2
+   107                              <1> SYS_CLOSE	equ	3
+   108                              <1> SYS_STAT	equ	4
+   109                              <1> SYS_FSTAT	equ	5
+   110                              <1> SYS_LSTAT	equ	6
+   111                              <1> SYS_POLL	equ	7
+   112                              <1> SYS_LSEEK	equ	8
+   113                              <1> SYS_MMAP	equ	9
+   114                              <1> SYS_MPROTECT	equ	10
+   115                              <1> SYS_MUNMAP	equ	11
+   116                              <1> SYS_BRK	equ	12
+   117                              <1> SYS_RT_SIGACTION	equ	13
+   118                              <1> SYS_RT_SIGPROCMASK	equ	14
+   119                              <1> SYS_RT_SIGRETURN	equ	15
+   120                              <1> SYS_IOCTL	equ	16
+   121                              <1> SYS_PREAD64	equ	17
+   122                              <1> SYS_PWRITE64	equ	18
+   123                              <1> SYS_READV	equ	19
+   124                              <1> SYS_WRITEV	equ	20
+   125                              <1> SYS_ACCESS	equ	21
+   126                              <1> SYS_PIPE	equ	22
+   127                              <1> SYS_SELECT	equ	23
+   128                              <1> SYS_SCHED_YIELD	equ	24
+   129                              <1> SYS_MREMAP	equ	25
+   130                              <1> SYS_MSYNC	equ	26
+   131                              <1> SYS_MINCORE	equ	27
+   132                              <1> SYS_MADVISE	equ	28
+   133                              <1> SYS_SHMGET	equ	29
+   134                              <1> SYS_SHMAT	equ	30
+   135                              <1> SYS_SHMCTL	equ	31
+   136                              <1> SYS_DUP	equ	32
+   137                              <1> SYS_DUP2	equ	33
+   138                              <1> SYS_PAUSE	equ	34
+   139                              <1> SYS_NANOSLEEP	equ	35
+   140                              <1> SYS_GETITIMER	equ	36
+   141                              <1> SYS_ALARM	equ	37
+   142                              <1> SYS_SETITIMER	equ	38
+   143                              <1> SYS_GETPID	equ	39
+   144                              <1> SYS_SENDFILE	equ	40
+   145                              <1> SYS_SOCKET	equ	41
+   146                              <1> SYS_CONNECT	equ	42
+   147                              <1> SYS_ACCEPT	equ	43
+   148                              <1> SYS_SENDTO	equ	44
+   149                              <1> SYS_RECVFROM	equ	45
+   150                              <1> SYS_SENDMSG	equ	46
+   151                              <1> SYS_RECVMSG	equ	47
+   152                              <1> SYS_SHUTDOWN	equ	48
+   153                              <1> SYS_BIND	equ	49
+   154                              <1> SYS_LISTEN	equ	50
+   155                              <1> SYS_GETSOCKNAME	equ	51
+   156                              <1> SYS_GETPEERNAME	equ	52
+   157                              <1> SYS_SOCKETPAIR	equ	53
+   158                              <1> SYS_SETSOCKOPT	equ	54
+   159                              <1> SYS_GETSOCKOPT	equ	55
+   160                              <1> SYS_CLONE	equ	56
+   161                              <1> SYS_FORK	equ	57
+   162                              <1> SYS_VFORK	equ	58
+   163                              <1> SYS_EXECVE	equ	59
+   164                              <1> SYS_EXIT	equ	60
+   165                              <1> SYS_WAIT4	equ	61
+   166                              <1> SYS_KILL	equ	62
+   167                              <1> SYS_UNAME	equ	63
+   168                              <1> SYS_SEMGET	equ	64
+   169                              <1> SYS_SEMOP	equ	65
+   170                              <1> SYS_SEMCTL	equ	66
+   171                              <1> SYS_SHMDT	equ	67
+   172                              <1> SYS_MSGGET	equ	68
+   173                              <1> SYS_MSGSND	equ	69
+   174                              <1> SYS_MSGRCV	equ	70
+   175                              <1> SYS_MSGCTL	equ	71
+   176                              <1> SYS_FCNTL	equ	72
+   177                              <1> SYS_FLOCK	equ	73
+   178                              <1> SYS_FSYNC	equ	74
+   179                              <1> SYS_FDATASYNC	equ	75
+   180                              <1> SYS_TRUNCATE	equ	76
+   181                              <1> SYS_FTRUNCATE	equ	77
+   182                              <1> SYS_GETDENTS	equ	78
+   183                              <1> SYS_GETCWD	equ	79
+   184                              <1> SYS_CHDIR	equ	80
+   185                              <1> SYS_FCHDIR	equ	81
+   186                              <1> SYS_RENAME	equ	82
+   187                              <1> SYS_MKDIR	equ	83
+   188                              <1> SYS_RMDIR	equ	84
+   189                              <1> SYS_CREAT	equ	85
+   190                              <1> SYS_LINK	equ	86
+   191                              <1> SYS_UNLINK	equ	87
+   192                              <1> SYS_SYMLINK	equ	88
+   193                              <1> SYS_READLINK	equ	89
+   194                              <1> SYS_CHMOD	equ	90
+   195                              <1> SYS_FCHMOD	equ	91
+   196                              <1> SYS_CHOWN	equ	92
+   197                              <1> SYS_FCHOWN	equ	93
+   198                              <1> SYS_LCHOWN	equ	94
+   199                              <1> SYS_UMASK	equ	95
+   200                              <1> SYS_GETTIMEOFDAY	equ	96
+   201                              <1> SYS_GETRLIMIT	equ	97
+   202                              <1> SYS_GETRUSAGE	equ	98
+   203                              <1> SYS_SYSINFO	equ	99
+   204                              <1> SYS_TIMES	equ	100
+   205                              <1> SYS_PTRACE	equ	101
+   206                              <1> SYS_GETUID	equ	102
+   207                              <1> SYS_SYSLOG	equ	103
+   208                              <1> SYS_GETGID	equ	104
+   209                              <1> SYS_SETUID	equ	105
+   210                              <1> SYS_SETGID	equ	106
+   211                              <1> SYS_GETEUID	equ	107
+   212                              <1> SYS_GETEGID	equ	108
+   213                              <1> SYS_SETPGID	equ	109
+   214                              <1> SYS_GETPPID	equ	110
+   215                              <1> SYS_GETPGRP	equ	111
+   216                              <1> SYS_SETSID	equ	112
+   217                              <1> SYS_SETREUID	equ	113
+   218                              <1> SYS_SETREGID	equ	114
+   219                              <1> SYS_GETGROUPS	equ	115
+   220                              <1> SYS_SETGROUPS	equ	116
+   221                              <1> SYS_SETRESUID	equ	117
+   222                              <1> SYS_GETRESUID	equ	118
+   223                              <1> SYS_SETRESGID	equ	119
+   224                              <1> SYS_GETRESGID	equ	120
+   225                              <1> SYS_GETPGID	equ	121
+   226                              <1> SYS_SETFSUID	equ	122
+   227                              <1> SYS_SETFSGID	equ	123
+   228                              <1> SYS_GETSID	equ	124
+   229                              <1> SYS_CAPGET	equ	125
+   230                              <1> SYS_CAPSET	equ	126
+   231                              <1> SYS_RT_SIGPENDING	equ	127
+   232                              <1> SYS_RT_SIGTIMEDWAIT	equ	128
+   233                              <1> SYS_RT_SIGQUEUEINFO	equ	129
+   234                              <1> SYS_RT_SIGSUSPEND	equ	130
+   235                              <1> SYS_SIGALTSTACK	equ	131
+   236                              <1> SYS_UTIME	equ	132
+   237                              <1> SYS_MKNOD	equ	133
+   238                              <1> SYS_USELIB	equ	134
+   239                              <1> SYS_PERSONALITY	equ	135
+   240                              <1> SYS_USTAT	equ	136
+   241                              <1> SYS_STATFS	equ	137
+   242                              <1> SYS_FSTATFS	equ	138
+   243                              <1> SYS_SYSFS	equ	139
+   244                              <1> SYS_GETPRIORITY	equ	140
+   245                              <1> SYS_SETPRIORITY	equ	141
+   246                              <1> SYS_SCHED_SETPARAM	equ	142
+   247                              <1> SYS_SCHED_GETPARAM	equ	143
+   248                              <1> SYS_SCHED_SETSCHEDULER	equ	144
+   249                              <1> SYS_SCHED_GETSCHEDULER	equ	145
+   250                              <1> SYS_SCHED_GET_PRIORITY_MAX	equ	146
+   251                              <1> SYS_SCHED_GET_PRIORITY_MIN	equ	147
+   252                              <1> SYS_SCHED_RR_GET_INTERVAL	equ	148
+   253                              <1> SYS_MLOCK	equ	149
+   254                              <1> SYS_MUNLOCK	equ	150
+   255                              <1> SYS_MLOCKALL	equ	151
+   256                              <1> SYS_MUNLOCKALL	equ	152
+   257                              <1> SYS_VHANGUP	equ	153
+   258                              <1> SYS_MODIFY_LDT	equ	154
+   259                              <1> SYS_PIVOT_ROOT	equ	155
+   260                              <1> SYS__SYSCTL	equ	156
+   261                              <1> SYS_PRCTL	equ	157
+   262                              <1> SYS_ARCH_PRCTL	equ	158
+   263                              <1> SYS_ADJTIMEX	equ	159
+   264                              <1> SYS_SETRLIMIT	equ	160
+   265                              <1> SYS_CHROOT	equ	161
+   266                              <1> SYS_SYNC	equ	162
+   267                              <1> SYS_ACCT	equ	163
+   268                              <1> SYS_SETTIMEOFDAY	equ	164
+   269                              <1> SYS_MOUNT	equ	165
+   270                              <1> SYS_UMOUNT2	equ	166
+   271                              <1> SYS_SWAPON	equ	167
+   272                              <1> SYS_SWAPOFF	equ	168
+   273                              <1> SYS_REBOOT	equ	169
+   274                              <1> SYS_SETHOSTNAME	equ	170
+   275                              <1> SYS_SETDOMAINNAME	equ	171
+   276                              <1> SYS_IOPL	equ	172
+   277                              <1> SYS_IOPERM	equ	173
+   278                              <1> SYS_CREATE_MODULE	equ	174
+   279                              <1> SYS_INIT_MODULE	equ	175
+   280                              <1> SYS_DELETE_MODULE	equ	176
+   281                              <1> SYS_GET_KERNEL_SYMS	equ	177
+   282                              <1> SYS_QUERY_MODULE	equ	178
+   283                              <1> SYS_QUOTACTL	equ	179
+   284                              <1> SYS_NFSSERVCTL	equ	180
+   285                              <1> SYS_GETPMSG	equ	181
+   286                              <1> SYS_PUTPMSG	equ	182
+   287                              <1> SYS_AFS_SYSCALL	equ	183
+   288                              <1> SYS_TUXCALL	equ	184
+   289                              <1> SYS_SECURITY	equ	185
+   290                              <1> SYS_GETTID	equ	186
+   291                              <1> SYS_READAHEAD	equ	187
+   292                              <1> SYS_SETXATTR	equ	188
+   293                              <1> SYS_LSETXATTR	equ	189
+   294                              <1> SYS_FSETXATTR	equ	190
+   295                              <1> SYS_GETXATTR	equ	191
+   296                              <1> SYS_LGETXATTR	equ	192
+   297                              <1> SYS_FGETXATTR	equ	193
+   298                              <1> SYS_LISTXATTR	equ	194
+   299                              <1> SYS_LLISTXATTR	equ	195
+   300                              <1> SYS_FLISTXATTR	equ	196
+   301                              <1> SYS_REMOVEXATTR	equ	197
+   302                              <1> SYS_LREMOVEXATTR	equ	198
+   303                              <1> SYS_FREMOVEXATTR	equ	199
+   304                              <1> SYS_TKILL	equ	200
+   305                              <1> SYS_TIME	equ	201
+   306                              <1> SYS_FUTEX	equ	202
+   307                              <1> SYS_SCHED_SETAFFINITY	equ	203
+   308                              <1> SYS_SCHED_GETAFFINITY	equ	204
+   309                              <1> SYS_SET_THREAD_AREA	equ	205
+   310                              <1> SYS_IO_SETUP	equ	206
+   311                              <1> SYS_IO_DESTROY	equ	207
+   312                              <1> SYS_IO_GETEVENTS	equ	208
+   313                              <1> SYS_IO_SUBMIT	equ	209
+   314                              <1> SYS_IO_CANCEL	equ	210
+   315                              <1> SYS_GET_THREAD_AREA	equ	211
+   316                              <1> SYS_LOOKUP_DCOOKIE	equ	212
+   317                              <1> SYS_EPOLL_CREATE	equ	213
+   318                              <1> SYS_EPOLL_CTL_OLD	equ	214
+   319                              <1> SYS_EPOLL_WAIT_OLD	equ	215
+   320                              <1> SYS_REMAP_FILE_PAGES	equ	216
+   321                              <1> SYS_GETDENTS64	equ	217
+   322                              <1> SYS_SET_TID_ADDRESS	equ	218
+   323                              <1> SYS_RESTART_SYSCALL	equ	219
+   324                              <1> SYS_SEMTIMEDOP	equ	220
+   325                              <1> SYS_FADVISE64	equ	221
+   326                              <1> SYS_TIMER_CREATE	equ	222
+   327                              <1> SYS_TIMER_SETTIME	equ	223
+   328                              <1> SYS_TIMER_GETTIME	equ	224
+   329                              <1> SYS_TIMER_GETOVERRUN	equ	225
+   330                              <1> SYS_TIMER_DELETE	equ	226
+   331                              <1> SYS_CLOCK_SETTIME	equ	227
+   332                              <1> SYS_CLOCK_GETTIME	equ	228
+   333                              <1> SYS_CLOCK_GETRES	equ	229
+   334                              <1> SYS_CLOCK_NANOSLEEP	equ	230
+   335                              <1> SYS_EXIT_GROUP	equ	231
+   336                              <1> SYS_EPOLL_WAIT	equ	232
+   337                              <1> SYS_EPOLL_CTL	equ	233
+   338                              <1> SYS_TGKILL	equ	234
+   339                              <1> SYS_UTIMES	equ	235
+   340                              <1> SYS_VSERVER	equ	236
+   341                              <1> SYS_MBIND	equ	237
+   342                              <1> SYS_SET_MEMPOLICY	equ	238
+   343                              <1> SYS_GET_MEMPOLICY	equ	239
+   344                              <1> SYS_MQ_OPEN	equ	240
+   345                              <1> SYS_MQ_UNLINK	equ	241
+   346                              <1> SYS_MQ_TIMEDSEND	equ	242
+   347                              <1> SYS_MQ_TIMEDRECEIVE	equ	243
+   348                              <1> SYS_MQ_NOTIFY	equ	244
+   349                              <1> SYS_MQ_GETSETATTR	equ	245
+   350                              <1> SYS_KEXEC_LOAD	equ	246
+   351                              <1> SYS_WAITID	equ	247
+   352                              <1> SYS_ADD_KEY	equ	248
+   353                              <1> SYS_REQUEST_KEY	equ	249
+   354                              <1> SYS_KEYCTL	equ	250
+   355                              <1> SYS_IOPRIO_SET	equ	251
+   356                              <1> SYS_IOPRIO_GET	equ	252
+   357                              <1> SYS_INOTIFY_INIT	equ	253
+   358                              <1> SYS_INOTIFY_ADD_WATCH	equ	254
+   359                              <1> SYS_INOTIFY_RM_WATCH	equ	255
+   360                              <1> SYS_MIGRATE_PAGES	equ	256
+   361                              <1> SYS_OPENAT	equ	257
+   362                              <1> SYS_MKDIRAT	equ	258
+   363                              <1> SYS_MKNODAT	equ	259
+   364                              <1> SYS_FCHOWNAT	equ	260
+   365                              <1> SYS_FUTIMESAT	equ	261
+   366                              <1> SYS_NEWFSTATAT	equ	262
+   367                              <1> SYS_UNLINKAT	equ	263
+   368                              <1> SYS_RENAMEAT	equ	264
+   369                              <1> SYS_LINKAT	equ	265
+   370                              <1> SYS_SYMLINKAT	equ	266
+   371                              <1> SYS_READLINKAT	equ	267
+   372                              <1> SYS_FCHMODAT	equ	268
+   373                              <1> SYS_FACCESSAT	equ	269
+   374                              <1> SYS_PSELECT6	equ	270
+   375                              <1> SYS_PPOLL	equ	271
+   376                              <1> SYS_UNSHARE	equ	272
+   377                              <1> SYS_SET_ROBUST_LIST	equ	273
+   378                              <1> SYS_GET_ROBUST_LIST	equ	274
+   379                              <1> SYS_SPLICE	equ	275
+   380                              <1> SYS_TEE	equ	276
+   381                              <1> SYS_SYNC_FILE_RANGE	equ	277
+   382                              <1> SYS_VMSPLICE	equ	278
+   383                              <1> SYS_MOVE_PAGES	equ	279
+   384                              <1> SYS_UTIMENSAT	equ	280
+   385                              <1> SYS_EPOLL_PWAIT	equ	281
+   386                              <1> SYS_SIGNALFD	equ	282
+   387                              <1> SYS_TIMERFD_CREATE	equ	283
+   388                              <1> SYS_EVENTFD	equ	284
+   389                              <1> SYS_FALLOCATE	equ	285
+   390                              <1> SYS_TIMERFD_SETTIME	equ	286
+   391                              <1> SYS_TIMERFD_GETTIME	equ	287
+   392                              <1> SYS_ACCEPT4	equ	288
+   393                              <1> SYS_SIGNALFD4	equ	289
+   394                              <1> SYS_EVENTFD2	equ	290
+   395                              <1> SYS_EPOLL_CREATE1	equ	291
+   396                              <1> SYS_DUP3	equ	292
+   397                              <1> SYS_PIPE2	equ	293
+   398                              <1> SYS_INOTIFY_INIT1	equ	294
+   399                              <1> SYS_PREADV	equ	295
+   400                              <1> SYS_PWRITEV	equ	296
+   401                              <1> SYS_RT_TGSIGQUEUEINFO	equ	297
+   402                              <1> SYS_PERF_EVENT_OPEN	equ	298
+   403                              <1> SYS_RECVMMSG	equ	299
+   404                              <1> SYS_FANOTIFY_INIT	equ	300
+   405                              <1> SYS_FANOTIFY_MARK	equ	301
+   406                              <1> SYS_PRLIMIT64	equ	302
+   407                              <1> SYS_NAME_TO_HANDLE_AT	equ	303
+   408                              <1> SYS_OPEN_BY_HANDLE_AT	equ	304
+   409                              <1> SYS_CLOCK_ADJTIME	equ	305
+   410                              <1> SYS_SYNCFS	equ	306
+   411                              <1> SYS_SENDMMSG	equ	307
+   412                              <1> SYS_SETNS	equ	308
+   413                              <1> SYS_GETCPU	equ	309
+   414                              <1> SYS_PROCESS_VM_READV	equ	310
+   415                              <1> SYS_PROCESS_VM_WRITEV	equ	311
+   416                              <1> SYS_KCMP	equ	312
+   417                              <1> SYS_FINIT_MODULE	equ	313
+   418                              <1> SYS_SCHED_SETATTR	equ	314
+   419                              <1> SYS_SCHED_GETATTR	equ	315
+   420                              <1> SYS_RENAMEAT2	equ	316
+   421                              <1> SYS_SECCOMP	equ	317
+   422                              <1> SYS_GETRANDOM	equ	318
+   423                              <1> SYS_MEMFD_CREATE	equ	319
+   424                              <1> SYS_KEXEC_FILE_LOAD	equ	320
+   425                              <1> SYS_BPF	equ	321
+   426                              <1> STUB_EXECVEAT	equ	322
+   427                              <1> USERFAULTFD	equ	323
+   428                              <1> MEMBARRIER	equ	324
+   429                              <1> MLOCK2	equ	325
+   430                              <1> COPY_FILE_RANGE	equ	326
+   431                              <1> PREADV2	equ	327
+   432                              <1> PWRITEV2	equ	328
+     2                                  
+     3                                  DEFAULT REL
+     4                                  global movePiece
+     5                                  global outputBoard
+     6                                  extern printf
+     7                                  
+     8                                  %macro _startCoords 0 ;// translates the coordinates in startRow and startCol to [rBx][rCx] fo easy acess.
+     9                                  
+    10                                                  mov     rAx, [startRow]               ;// convert startRow coord into bytes
+    11                                                  mov     rBx, 8
+    12                                                  mul     rBx
+    13                                  
+    14                                                  mov     rBx, [checkerboard+rAx]      ;// move the target row into rBx
+    15                                                  mov     rCx, [startCol]
+    16                                  
+    17                                  %endmacro
+    18                                  
+    19                                  %macro _endCoords 0 ;// translates the coordinates in endRow and endCol to [rBx][rCx] fo easy acess.
+    20                                  
+    21                                                  mov     rAx, [endRow]                 ;// convert endRow coord into bytes
+    22                                                  mov     rBx, 8
+    23                                                  mul     rBx
+    24                                  
+    25                                                  mov     rBx, [checkerboard+rAx]      ;// move the target tow into rBx
+    26                                                  mov     rCx, [endCol]
+    27                                  
+    28                                  %endmacro
+    29                                  
+    30                                  SECTION .data
+    31                                  
+    32                                  ; leftB db "[ ",0
+    33                                  ; rightB db " ]",0
+    34                                  
+    35 00000000 0200020002000200        row0 db 2, 0, 2, 0, 2, 0, 2, 0
+    36 00000008 0002000200020002        row1 db 0, 2, 0, 2, 0, 2, 0, 2
+    37 00000010 0200020002000200        row2 db 2, 0, 2, 0, 2, 0, 2, 0
+    38 00000018 0000000000000000        row3 db 0, 0, 0, 0, 0, 0, 0, 0
+    39 00000020 0000000000000000        row4 db 0, 0, 0, 0, 0, 0, 0, 0
+    40 00000028 0001000100010001        row5 db 0, 1, 0, 1, 0, 1, 0, 1
+    41 00000030 0100010001000100        row6 db 1, 0, 1, 0, 1, 0, 1, 0
+    42 00000038 0001000100010001        row7 db 0, 1, 0, 1, 0, 1, 0, 1
+    43                                  
+    44 00000040 436865636B6572626F-     filename db "Checkerboard.txt",0
+    44 00000049 6172642E74787400   
+    45                                  
+    46 00000051 [0000000000000000]-     checkerboard dq row0, row1, row2, row3, row4, row5, row6, row7
+    46 00000059 [0800000000000000]-
+    46 00000061 [1000000000000000]-
+    46 00000069 [1800000000000000]-
+    46 00000071 [2000000000000000]-
+    46 00000079 [2800000000000000]-
+    46 00000081 [3000000000000000]-
+    46 00000089 [3800000000000000] 
+    47                                  
+    48 00000091 4A4F53484445425547-     message db "JOSHDEBUG = %d", 10, 0
+    48 0000009A 203D2025640A00     
+    49                                  
+    50                                  SECTION .bss
+    51                                  itemToAdd:
+    52 00000074 <res 00000010>            RESB 16
+    53                                  fileDescriptor:
+    54 00000084 <res 00000010>            RESB 16
+    55                                  startRow: 
+    56 00000094 <res 00000100>            RESB 256
+    57                                  startCol:
+    58 00000194 <res 00000100>            RESB 256
+    59                                  endRow:
+    60 00000294 <res 00000100>            RESB 256
+    61                                  endCol:
+    62 00000394 <res 00000100>            RESB 256
+    63                                       
+    64                                  
+    65                                  SECTION .text
+    66                                  ;main:
+    67                                  
+    68                                  outputBoard:
+    69 00000000 B802000000                                      mov rax, SYS_OPEN
+    70 00000005 48BF-                   	                mov rdi, filename
+    70 00000007 [4000000000000000] 
+    71 0000000F BE41000000              	                mov rsi, O_CREAT+O_WRONLY
+    72 00000014 BAA4010000              	                mov rdx, 0644o
+    73 00000019 0F05                    	                syscall
+    74 0000001B 488905(84000000)        	                mov [fileDescriptor], rax
+    75                                  
+    76 00000022 4831C9                                      xor     rCx, rCx                        ;// int i = 0
+    77 00000025 4883F940                    FOR_outB:       cmp     rCx, 64                         ;// for i < 32
+    78 00000029 7C02                                        jl      DOFOR_outB
+    79 0000002B EB14                                        jmp     ENDFOR_outB
+    80                                  
+    81 0000002D 488B99[51000000]            DOFOR_outB:     mov     rBx, [checkerboard+rCx]          ;//puts row[rCx] into rBx for outputRow Function
+    82 00000034 51                                          push    rCx
+    83 00000035 E816000000                                  call    outputRow
+    84 0000003A 59                                          pop     rCx
+    85 0000003B 4883C108                                    add     rCx, 8                          ;// i+=4
+    86                                  
+    87 0000003F EBE4                                        jmp     FOR_outB
+    88                                      ENDFOR_outB:   
+    89 00000041 B803000000                                  mov rax, SYS_CLOSE
+    90 00000046 488B3D(84000000)        	            mov rdi, [fileDescriptor]
+    91 0000004D 0F05                    	            syscall
+    92 0000004F C3                                          ret
+    93                                  
+    94                                  
+    95                                  outputRow:                                              ;// Requires: rBx =  rowX
+    96 00000050 4831C9                                      xor     rCx, rCx                        ;// int j = 0
+    97 00000053 4883F908                    FOR_outR:       cmp     rCx, 8                          ;// for j < 8
+    98 00000057 7C02                                        jl      DOFOR_outR
+    99 00000059 EB37                                        jmp     ENDFOR_outR
+   100                                  
+   101                                      DOFOR_outR:     
+   102 0000005B 4831C0                                      xor     rAx, rAx                        ;// clear rAx
+   103 0000005E 8A040B                                      mov     Al, [rBx + rCx]                 ;// VVV
+   104 00000061 488B3D(84000000)        			mov rdi, [fileDescriptor]
+   105 00000068 4883C030                			add rax, 48
+   106 0000006C B420                    			mov ah, 32                          ;// Adds a space between the numbers in the file.
+   107 0000006E 488905(74000000)        			mov [itemToAdd], rax
+   108 00000075 48BE-                   	                mov rsi, itemToAdd
+   108 00000077 [7400000000000000] 
+   109 0000007F B801000000              	                mov rax, SYS_WRITE
+   110 00000084 BA02000000              	                mov rdx, 2
+   111 00000089 51                      			push rcx
+   112 0000008A 0F05                    	                syscall
+   113 0000008C 59                      			pop rcx
+   114 0000008D 48FFC1                                      inc rcx
+   115 00000090 EBC1                                        jmp     FOR_outR
+   116                                  
+   117                                      ENDFOR_outR:     
+   118 00000092 C3                                          ret
+   119                                  
+   120                                  movePiece:
+   121                                  
+   122 00000093 893D(94000000)                mov [startRow], edi
+   123 00000099 8935(94010000)                mov [startCol], esi
+   124 0000009F 8915(94020000)                mov [endRow], edx
+   125 000000A5 890D(94030000)                mov [endCol], ecx
+   126                                  
+   127                                  strt_OOB_test:
+   128 000000AB 833D(94000000)00                            cmp     [startRow], DWORD 0
+   129 000000B2 0F8CD0030000                                jl      END_MOVE
+   130 000000B8 833D(94000000)07                            cmp     [startRow], DWORD 7
+   131 000000BF 0F8FC3030000                                jg      END_MOVE
+   132 000000C5 833D(94010000)00                            cmp     [startCol], DWORD 0
+   133 000000CC 0F8CB6030000                                jl      END_MOVE
+   134 000000D2 833D(94010000)07                            cmp     [startCol], DWORD 7
+   135 000000D9 0F8FA9030000                                jg      END_MOVE
+   136                                  
+   137                                                      ;// ILLEGAL MOVE: destination square out of bounds
+   138                                  dst_OOB_test:
+   139 000000DF 833D(94020000)00                            cmp     [endRow], DWORD 0
+   140 000000E6 0F8C9C030000                                jl      END_MOVE
+   141 000000EC 833D(94020000)07                            cmp     [endRow], DWORD 7
+   142 000000F3 0F8F8F030000                                jg      END_MOVE
+   143 000000F9 833D(94030000)00                            cmp     [endCol], DWORD 0
+   144 00000100 0F8C82030000                                jl      END_MOVE
+   145 00000106 833D(94030000)07                            cmp     [endCol], DWORD 7
+   146 0000010D 0F8F75030000                                jg      END_MOVE
+   147                                  
+   148                                                      ;// ILLEGAL MOVE: destination square is black
+   149                                  dst_BLK_test:
+   150 00000113 488B05(94020000)                            mov     rAx, [endRow]
+   151 0000011A 480305(94030000)                            add     rAx, [endCol]
+   152 00000121 4831D2                                      xor     rDx, rDx
+   153 00000124 BB02000000                                  mov     rBx, 2                      ;// divide the sum of the coords by 2
+   154 00000129 48F7F3                                      div     rBx                         ;// since all white spaces contain either two od coords or two even coords, then the sum must be even
+   155 0000012C 4883FA01                                    cmp     rDx, 1                      ;// if the remanider of div 2 is 1, then the destination square must be black
+   156 00000130 0F8452030000                                je      END_MOVE
+   157                                  
+   158                                                      ;// ILLEGAL MOVE: destination square is backwards (or if the starting square is rmpty)
+   159                                  dst_BACK_test:
+   160                                                      _startCoords
+   160                              <1> 
+   160 00000136 488B05(94000000)    <1>  mov rAx, [startRow]
+   160 0000013D BB08000000          <1>  mov rBx, 8
+   160 00000142 48F7E3              <1>  mul rBx
+   160                              <1> 
+   160 00000145 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
+   160 0000014C 488B0D(94010000)    <1>  mov rCx, [startCol]
+   160                              <1> 
+   161 00000153 8A040B                                      mov     AL, [rBx + rCx]
+   162 00000156 3C02                        IF_P2:          cmp     AL, 2                       ;// if thr piece at the startCoords is a 2 (black piece)
+   163 00000158 7402                                        je      THEN_P2
+   164 0000015A EB39                                        jmp     IF_P1
+   165 0000015C 488B05(94000000)                THEN_P2:    mov     rAx, [startRow]               ;// then thr piece can only move down the board (positivr x)
+   166 00000163 48FFC0                                      inc     rAx
+   167 00000166 483B05(94020000)                            cmp     rAx, [endRow]
+   168 0000016D 0F8515030000                                jne     END_MOVE
+   169 00000173 EB40                                        jmp     ENDIF_P12
+   170                                  
+   171                                                      _startCoords
+   171                              <1> 
+   171 00000175 488B05(94000000)    <1>  mov rAx, [startRow]
+   171 0000017C BB08000000          <1>  mov rBx, 8
+   171 00000181 48F7E3              <1>  mul rBx
+   171                              <1> 
+   171 00000184 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
+   171 0000018B 488B0D(94010000)    <1>  mov rCx, [startCol]
+   171                              <1> 
+   172 00000192 8A040B                                      mov     AL, [rBx + rCx]
+   173 00000195 3C01                        IF_P1:          cmp     AL, 1                       ;// if thr piece at the startCoords is a 1 (red piece)
+   174 00000197 7405                                        je      THEN_P1
+   175 00000199 E9EA020000                                  jmp     END_MOVE                 ;// if thr piece is neither a 1 nor a two, it cannot be moved
+   176 0000019E 488B05(94000000)                THEN_P1:    mov     rAx, [startRow]               ;// then thr piece can only move down the board (positivr x)
+   177 000001A5 48FFC8                                      dec     rAx
+   178 000001A8 483B05(94020000)                            cmp     rAx, [endRow]
+   179 000001AF 0F85D3020000                                jne     END_MOVE
+   180                                  
+   181                                      ENDIF_P12:
+   182                                  
+   183                                                      ;// ILLEGAL MOVE: destination square is occupied (also if the start space is rmpty)
+   184                                  dst_OCP_test:
+   185                                                      _startCoords
+   185                              <1> 
+   185 000001B5 488B05(94000000)    <1>  mov rAx, [startRow]
+   185 000001BC BB08000000          <1>  mov rBx, 8
+   185 000001C1 48F7E3              <1>  mul rBx
+   185                              <1> 
+   185 000001C4 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
+   185 000001CB 488B0D(94010000)    <1>  mov rCx, [startCol]
+   185                              <1> 
+   186 000001D2 8A040B                                      mov     AL, [rBx + rCx]
+   187 000001D5 3C02                        IF_O2           cmp     AL, 2                       ;// if thr piece at the start is a 2 (black piece)
+   188 000001D7 7402                                        je      THEN_O2
+   189 000001D9 EB2A                                        jmp     IF_O1
+   190                                          THEN_O2:    _endCoords                          ;// then it cannot jump a friendly piece
+   190                              <1>  THEN_O2: 
+   190                              <1> 
+   190 000001DB 488B05(94020000)    <1>  mov rAx, [endRow]
+   190 000001E2 BB08000000          <1>  mov rBx, 8
+   190 000001E7 48F7E3              <1>  mul rBx
+   190                              <1> 
+   190 000001EA 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
+   190 000001F1 488B0D(94030000)    <1>  mov rCx, [endCol]
+   190                              <1> 
+   191 000001F8 8A040B                                      mov     AL, [rBx + rCx]
+   192 000001FB 3C02                                        cmp     Al, 2
+   193 000001FD 0F8485020000                                je      END_MOVE
+   194 00000203 EB4E                                        jmp     ENDIF_O12
+   195                                  
+   196                                      IF_O1:          _startCoords
+   196                              <1>  IF_O1: 
+   196                              <1> 
+   196 00000205 488B05(94000000)    <1>  mov rAx, [startRow]
+   196 0000020C BB08000000          <1>  mov rBx, 8
+   196 00000211 48F7E3              <1>  mul rBx
+   196                              <1> 
+   196 00000214 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
+   196 0000021B 488B0D(94010000)    <1>  mov rCx, [startCol]
+   196                              <1> 
+   197 00000222 8A040B                                      mov     AL, [rBx + rCx]
+   198 00000225 3C01                                        cmp     AL, 1                       ;// if thr piece at the start is a 1 (red piece)
+   199 00000227 7402                                        je      THEN_O1
+   200 00000229 EB28                                        jmp     ENDIF_O12
+   201                                          THEN_O1:    _endCoords
+   201                              <1>  THEN_O1: 
+   201                              <1> 
+   201 0000022B 488B05(94020000)    <1>  mov rAx, [endRow]
+   201 00000232 BB08000000          <1>  mov rBx, 8
+   201 00000237 48F7E3              <1>  mul rBx
+   201                              <1> 
+   201 0000023A 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
+   201 00000241 488B0D(94030000)    <1>  mov rCx, [endCol]
+   201                              <1> 
+   202 00000248 8A040B                                      mov     Al, [rBx + rCx]
+   203 0000024B 3C01                                        cmp     AL, 1                       ;// then it cannot jump a friendly piece
+   204 0000024D 0F8435020000                                je      END_MOVE
+   205                                  
+   206                                      ENDIF_O12:
+   207                                  
+   208                                                      ;// Testing for attrmpted jump
+   209                                  jmp_test:
+   210                                                      _startCoords
+   210                              <1> 
+   210 00000253 488B05(94000000)    <1>  mov rAx, [startRow]
+   210 0000025A BB08000000          <1>  mov rBx, 8
+   210 0000025F 48F7E3              <1>  mul rBx
+   210                              <1> 
+   210 00000262 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
+   210 00000269 488B0D(94010000)    <1>  mov rCx, [startCol]
+   210                              <1> 
+   211 00000270 8A040B                                      mov     AL, [rBx + rCx]
+   212 00000273 3C02                        IF_J2           cmp     AL, 2                       ;// if thr piece at the start is a 2 (black piece)
+   213 00000275 7402                                        je      THEN_J2
+   214 00000277 EB29                                        jmp     IF_J1
+   215                                          THEN_J2:    _endCoords                          ;// and the dest contains an enemy piece
+   215                              <1>  THEN_J2: 
+   215                              <1> 
+   215 00000279 488B05(94020000)    <1>  mov rAx, [endRow]
+   215 00000280 BB08000000          <1>  mov rBx, 8
+   215 00000285 48F7E3              <1>  mul rBx
+   215                              <1> 
+   215 00000288 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
+   215 0000028F 488B0D(94030000)    <1>  mov rCx, [endCol]
+   215                              <1> 
+   216 00000296 8A040B                                      mov     AL, [rBx + rCx]
+   217 00000299 3C01                                        cmp     Al, 1
+   218 0000029B 7454                                        je      ENDIF_J12                   ;// check for illegal jump
+   219 0000029D E904010000                                  jmp     legal_move                  ;// otherwise, just move normally
+   220                                  
+   221                                      IF_J1:          _startCoords
+   221                              <1>  IF_J1: 
+   221                              <1> 
+   221 000002A2 488B05(94000000)    <1>  mov rAx, [startRow]
+   221 000002A9 BB08000000          <1>  mov rBx, 8
+   221 000002AE 48F7E3              <1>  mul rBx
+   221                              <1> 
+   221 000002B1 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
+   221 000002B8 488B0D(94010000)    <1>  mov rCx, [startCol]
+   221                              <1> 
+   222 000002BF 8A040B                                      mov     AL, [rBx + rCx]
+   223 000002C2 3C01                                        cmp     AL, 1                       ;// if thr piece at the start is a 1 (red piece)
+   224 000002C4 7402                                        je      THEN_J1
+   225 000002C6 EB29                                        jmp     ENDIF_J12
+   226                                          THEN_J1:    _endCoords                          ;// and the dest contains an enemy piece
+   226                              <1>  THEN_J1: 
+   226                              <1> 
+   226 000002C8 488B05(94020000)    <1>  mov rAx, [endRow]
+   226 000002CF BB08000000          <1>  mov rBx, 8
+   226 000002D4 48F7E3              <1>  mul rBx
+   226                              <1> 
+   226 000002D7 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
+   226 000002DE 488B0D(94030000)    <1>  mov rCx, [endCol]
+   226                              <1> 
+   227 000002E5 8A040B                                      mov     Al, [rBx + rCx]
+   228 000002E8 3C02                                        cmp     AL, 2
+   229 000002EA 7405                                        je      ENDIF_J12                   ;// check for illegal jump
+   230 000002EC E9B5000000                                  jmp     legal_move                  ;// otherwise, just move normally
+   231                                  
+   232                                      ENDIF_J12:
+   233                                  
+   234                                                      ;// ILLEGAL MOVE: jump is out of bounds
+   235                                  jmp_OOB_test:
+   236 000002F1 488B05(94020000)                            mov     rAx, [endRow]                     ;//converts inout endCoords to proper jump destination
+   237 000002F8 480305(94000000)                            add     rAx, [startRow]
+   238 000002FF BB02000000                                  mov     rBx, 2
+   239 00000304 48F7E3                                      mul     rBx
+   240 00000307 48031D(94000000)                            add     rBx, [startRow]
+   241                                  
+   242 0000030E 4883F800                                    cmp     rAx, 0
+   243 00000312 0F8C70010000                                jl      END_MOVE
+   244 00000318 4883F807                                    cmp     rAx, 7
+   245 0000031C 0F8F66010000                                jg      END_MOVE
+   246                                  
+   247 00000322 488B05(94030000)                            mov     rAx, [endCol]                     ;//converts inout endCoords to proper jump destination
+   248 00000329 480305(94010000)                            add     rAx, [startCol]
+   249 00000330 B902000000                                  mov     rCx, 2
+   250 00000335 48F7E1                                      mul     rCx
+   251 00000338 48030D(94010000)                            add     rCx, [startCol]
+   252 0000033F 4889C1                                      mov     rCx, rAx
+   253                                  
+   254 00000342 4883F800                                    cmp     rAx, 0
+   255 00000346 0F8C3C010000                                jl      END_MOVE
+   256 0000034C 4883F807                                    cmp     rAx, 7
+   257 00000350 0F8F32010000                                jg      END_MOVE
+   258                                  
+   259                                                      ;// ILLEGAL MOVE: jump destination is occupied
+   260                                  jmp_OCP_test:
+   261 00000356 488B05(94020000)                            mov     rAx, [endRow]                     ;//converts inout endCoords to proper jump destination
+   262 0000035D 480305(94000000)                            add     rAx, [startRow]
+   263 00000364 BB02000000                                  mov     rBx, 2
+   264 00000369 48F7E3                                      mul     rBx
+   265 0000036C 48031D(94000000)                            add     rBx, [startRow]
+   266 00000373 488B98[51000000]                            mov     rBx, [checkerboard+rAx]
+   267                                  
+   268 0000037A 488B05(94030000)                            mov     rAx, [endCol]                     ;//converts inout endCoords to proper jump destination
+   269 00000381 480305(94010000)                            add     rAx, [startCol]
+   270 00000388 B902000000                                  mov     rCx, 2
+   271 0000038D 48F7E1                                      mul     rCx
+   272 00000390 48030D(94010000)                            add     rCx, [startCol]
+   273 00000397 4889C1                                      mov     rCx, rAx
+   274                                  
+   275 0000039A 833CCB00                                    cmp     [rBx + 8*rCx], DWORD 0
+   276 0000039E 0F85E4000000                                jne     END_MOVE
+   277 000003A4 EB50                                        jmp     legal_jump
+   278                                  
+   279                                                      ;// LEGAL MOVE OR JUMP:
+   280                                  legal_move:
+   281                                                      _startCoords                            ;// puts startRow and startCol into [rBx][rCx]
+   281                              <1> 
+   281 000003A6 488B05(94000000)    <1>  mov rAx, [startRow]
+   281 000003AD BB08000000          <1>  mov rBx, 8
+   281 000003B2 48F7E3              <1>  mul rBx
+   281                              <1> 
+   281 000003B5 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
+   281 000003BC 488B0D(94010000)    <1>  mov rCx, [startCol]
+   281                              <1> 
+   282 000003C3 4831C0                                      xor     rAx, rAx
+   283 000003C6 8A040B                                      mov     AL, [rBx + rCx]                  ;// move the value at [startRow][startCol] into AL
+   284 000003C9 50                                          push    rAx                             ;// save thr piece to be moved
+   285                                  
+   286 000003CA 4831C0                                      xor     rAx, rAx
+   287 000003CD 88040B                                      mov     [rBx + rCx], AL                  ;// rmpty the space
+   288                                  
+   289                                                      _endCoords                              ;// puts endRow and endCol into [rBx][rCx]
+   289                              <1> 
+   289 000003D0 488B05(94020000)    <1>  mov rAx, [endRow]
+   289 000003D7 BB08000000          <1>  mov rBx, 8
+   289 000003DC 48F7E3              <1>  mul rBx
+   289                              <1> 
+   289 000003DF 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
+   289 000003E6 488B0D(94030000)    <1>  mov rCx, [endCol]
+   289                              <1> 
+   290 000003ED 58                                          pop     rAx                             ;// restorr piece
+   291 000003EE 88040B                                      mov     [rBx + rCx], AL                  ;// put thr pice into checkerboard at [endRow][endCol]
+   292 000003F1 E992000000              		    jmp END_MOVE
+   293                                  legal_jump:                                                 ;// code below is identical to legal_move, but the end coords arr pushed by one to cause the jump
+   294                                                      _startCoords
+   294                              <1> 
+   294 000003F6 488B05(94000000)    <1>  mov rAx, [startRow]
+   294 000003FD BB08000000          <1>  mov rBx, 8
+   294 00000402 48F7E3              <1>  mul rBx
+   294                              <1> 
+   294 00000405 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
+   294 0000040C 488B0D(94010000)    <1>  mov rCx, [startCol]
+   294                              <1> 
+   295 00000413 4831C0                                      xor     rAx, rAx
+   296 00000416 8A040B                                      mov     AL, [rBx + rCx]
+   297 00000419 50                                          push    rAx
+   298                                  
+   299 0000041A 4831C0                                      xor     rAx, rAx
+   300 0000041D 88040B                                      mov     [rBx + rCx], AL
+   301                                  
+   302                                                      _endCoords                              ;// rmpty the jumped over space
+   302                              <1> 
+   302 00000420 488B05(94020000)    <1>  mov rAx, [endRow]
+   302 00000427 BB08000000          <1>  mov rBx, 8
+   302 0000042C 48F7E3              <1>  mul rBx
+   302                              <1> 
+   302 0000042F 488B98[51000000]    <1>  mov rBx, [checkerboard+rAx]
+   302 00000436 488B0D(94030000)    <1>  mov rCx, [endCol]
+   302                              <1> 
+   303 0000043D 88040B                                      mov     [rBx + rCx], AL
+   304                                  
+   305 00000440 488B05(94020000)                            mov     rAx, [endRow]                     ;//converts inout endCoords to proper jump destination
+   306 00000447 480305(94000000)                            add     rAx, [startRow]
+   307 0000044E BB02000000                                  mov     rBx, 2
+   308 00000453 48F7E3                                      mul     rBx
+   309 00000456 48031D(94000000)                            add     rBx, [startRow]
+   310 0000045D 488B98[51000000]                            mov     rBx, [checkerboard+rAx]
+   311                                  
+   312 00000464 488B05(94030000)                            mov     rAx, [endCol]                     ;//converts inout endCoords to proper jump destination
+   313 0000046B 480305(94010000)                            add     rAx, [startCol]
+   314 00000472 B902000000                                  mov     rCx, 2
+   315 00000477 48F7E1                                      mul     rCx
+   316 0000047A 48030D(94010000)                            add     rCx, [startCol]
+   317 00000481 4889C1                                      mov     rCx, rAx
+   318                                  
+   319 00000484 58                                          pop     rAx
+   320 00000485 8804CB                                      mov     [rBx + 8*rCx], AL
+   321                                  END_MOVE:
+   322 00000488 E873FBFFFF                                  call outputBoard
+   323 0000048D C3                                          ret
+   324                                  
+   325                                  kingCheck:
+   326                                  
+   327 0000048E 4831C9                                      xor     rCx, rCx                        ;// int i = 0
+   328 00000491 4883F908                    FOR1_KC:        cmp     rCx, 8                          ;// i < 8
+   329 00000495 7C02                                        jl      DO1_KC
+   330 00000497 EB1D                                        jmp     ENDFOR1_KC
+   331                                  
+   332 00000499 4831C0                          DO1_KC:     xor     rAx, rAx                        ;// row = 0
+   333 0000049C 488B98[51000000]                            mov     rBx, [checkerboard+rAx]          ;// move the target row into rBx
+   334                                  
+   335 000004A3 8A04CB                                      mov     AL, [rBx + 8*rCx]
+   336 000004A6 3C01                                        cmp     Al, 1
+   337 000004A8 7402                                        je      KING_ONE
+   338 000004AA EB05                                        jmp     FORNEXT1_KC
+   339                                  
+   340 000004AC B003                        KING_ONE:       mov     AL, 3                           ;// replace the 1 in the back row with a 3 (red king)
+   341 000004AE 8804CB                                      mov     [rBx + 8*rCx], AL
+   342                                  
+   343                                      FORNEXT1_KC:
+   344 000004B1 48FFC1                                      inc     rCx                             ;// i++
+   345 000004B4 EBDB                                        jmp     FOR1_KC
+   346                                      ENDFOR1_KC:
+   347 000004B6 4831C9                                      xor     rCx, rCx                        ;// int i = 0
+   348 000004B9 4883F908                    FOR2_KC:        cmp     rCx, 8                          ;// i < 8
+   349 000004BD 7C02                                        jl      DO2_KC
+   350 000004BF EB1F                                        jmp     ENDFOR2_KC
+   351                                  
+   352 000004C1 B81C000000                      DO2_KC:     mov     rAx, 28                         ;// row = 7
+   353 000004C6 488B98[51000000]                            mov     rBx, [checkerboard+rAx]          ;// move the target row into rBx
+   354                                  
+   355 000004CD 8A04CB                                      mov     AL, [rBx + 8*rCx]
+   356 000004D0 3C02                                        cmp     Al, 2
+   357 000004D2 7402                                        je      KING_TWO
+   358 000004D4 EB05                                        jmp     FORNEXT2_KC
+   359                                  
+   360 000004D6 B004                        KING_TWO:       mov     AL, 4                           ;// replace the 1 in the back row with a 3 (red king)
+   361 000004D8 8804CB                                      mov     [rBx + 8*rCx], AL
+   362                                  
+   363                                      FORNEXT2_KC:
+   364                                  
+   365 000004DB 48FFC1                                      inc     rCx                             ;// i++
+   366 000004DE EBD9                                        jmp     FOR2_KC
+   367                                      ENDFOR2_KC:
+   368 000004E0 C3                                          ret
+   369                                  
+   370                                  ENDPRGM:            ;call    CRLF
+   371                                  
+   372                                  ;INVOKE ExitProcess, 0
+   373                                  ;main ENDP
+   374                                  ;END main

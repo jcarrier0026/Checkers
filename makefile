@@ -1,6 +1,6 @@
 # Some useful variables
 OBJS = graphics.o input.o main.o sprite.o game.o
-CFLAGS = -Wall -g -std=c++17
+CFLAGS = -Wall -g -std=c++17 -no-pie
 LIBS = `sdl2-config --cflags --libs` -lSDL2_image
 CC = g++
 
@@ -17,11 +17,14 @@ run.out: ${OBJS}
 # Special rule for making .o files out of .cpp files.
 .cpp.o:
 	${CC} ${CFLAGS} -c $<
-	
+
+rules.o: rules.asm
+	nasm -f elf64 -g -F stabs rules.asm -l rules.lst
+
 # 'clean' is a phony target.
 # Typing "make clean" will actually just run a command for us.
 # Typically, 'clean' is set to remove the compiled outputs.
 clean:
-	rm *.out *.o
+	rm *.out *.o *.lst
 
 
