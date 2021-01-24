@@ -9,7 +9,6 @@
 #include "constants.h"
 
 extern "C" {
-void outputBoard();
 void movePiece(int startX, int startY, int endX, int endY);
 }
 

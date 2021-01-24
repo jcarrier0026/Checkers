@@ -2,7 +2,6 @@
 
 DEFAULT REL
 global movePiece
-global outputBoard
 extern printf
 
 %macro _startCoords 0 ;// translates the coordinates in startRow and startCol to [rBx][rCx] fo easy acess.
